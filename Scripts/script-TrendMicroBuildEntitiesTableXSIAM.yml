@@ -2,16 +2,12 @@ commonfields:
   id: TrendMicroBuildEntitiesTableXSIAM
   version: -1
 name: TrendMicroBuildEntitiesTableXSIAM
-comment: Build a compact Entities/IOC table; flattens array-like values and strips embedded quotes.
+comment: Entities/IOC table for legacy layoutscontainer dynamic sections (works with root or CustomFields).
 type: python
-tags:
-  - dynamic-section
-  - SOC
-  - SOC_Framework
+tags: [dynamic-section]
 enabled: true
-fromversion: 6.10.0
-marketplaces:
-  - marketplacev2
+fromversion: 6.2.0
+marketplaces: [marketplacev2]
 args:
   - name: hostnames_field
     defaultValue: entity_hostnames
@@ -28,32 +24,41 @@ args:
 script: |-
   import json
 
+  def get_val(src, key):
+    # allow root or CustomFields
+    if key in src: return src.get(key)
+    cf = src.get('CustomFields') or src.get('customFields') or {}
+    return cf.get(key)
+
   def norm(x):
     if x is None:
       return []
     if isinstance(x, list):
       out=[]
       for v in x:
-        if isinstance(v, str):
-          s=v.strip()
-          if s.startswith('"') and s.endswith('"') and len(s)>=2:
-            s=s[1:-1]
+        s = v if isinstance(v,str) else str(v)
+        s = s.strip()
+        if s.startswith('"') and s.endswith('"') and len(s)>=2:
+          s = s[1:-1]
+        if s:
           out.append(s)
-        else:
-          out.append(str(v))
-      return [s for s in out if s]
+      return out
     if isinstance(x, str):
       s=x.strip()
+      if not s:
+        return []
+      # try JSON array
       try:
         obj=json.loads(s)
         if isinstance(obj, list):
-          return [str(i).strip('"') for i in obj]
+          return [str(i).strip('"') for i in obj if str(i).strip('"')]
       except Exception:
         pass
-      for d in ['|', ',', ';']:
+      # fallback to common delimiters
+      for d in ['|', ',', ';', '\n', '\t', ' ']:
         if d in s:
-          return [i.strip().strip('"') for i in s.split(d) if i.strip()]
-      return [s.strip('"')] if s else []
+          return [i.strip().strip('"') for i in s.split(d) if i.strip().strip('"')]
+      return [s.strip('"')]
     return [str(x)]
 
   def table_md(rows, headers):
@@ -63,23 +68,24 @@ script: |-
     return "\n".join(out)
 
   def main():
-    args=demisto.args()
-    inc=demisto.incidents()[0].get('CustomFields', {})
-    hosts=norm(inc.get(args.get('hostnames_field','entity_hostnames')))
-    ips=norm(inc.get(args.get('hostips_field','entity_host_ips')))
-    users=norm(inc.get(args.get('users_field','entity_users')))
-    files=norm(inc.get(args.get('files_field','entity_files')))
-    hashes=norm(inc.get(args.get('hashes_field','entity_hashes')))
-    procs=norm(inc.get(args.get('processes_field','entity_processes')))
+    inc = demisto.incidents()[0]
+    args = demisto.args()
 
-    maxlen=max(len(hosts),len(ips),len(users),len(files),len(hashes),len(procs),1)
-    def pad(lst): return lst+[""]*(maxlen-len(lst))
+    hosts = norm(get_val(inc, args.get('hostnames_field','entity_hostnames')))
+    ips   = norm(get_val(inc, args.get('hostips_field','entity_host_ips')))
+    users = norm(get_val(inc, args.get('users_field','entity_users')))
+    files = norm(get_val(inc, args.get('files_field','entity_files')))
+    hashes= norm(get_val(inc, args.get('hashes_field','entity_hashes')))
+    procs = norm(get_val(inc, args.get('processes_field','entity_processes')))
+
+    maxlen = max(len(hosts),len(ips),len(users),len(files),len(hashes),len(procs),1)
+    def pad(lst): return lst + [""]*(maxlen-len(lst))
 
     rows=[]
     for i in range(maxlen):
-      rows.append([pad(hosts)[i],pad(ips)[i],pad(users)[i],pad(files)[i],pad(hashes)[i],pad(procs)[i]])
+      rows.append([pad(hosts)[i], pad(ips)[i], pad(users)[i], pad(files)[i], pad(hashes)[i], pad(procs)[i]])
 
-    md=table_md(rows,["Hostname","IP","User","File","Hash","Process"])
+    md = table_md(rows, ["Hostname","IP","User","File","Hash","Process"])
     demisto.results({'Type': entryTypes['note'], 'ContentsFormat': formats['markdown'], 'Contents': md})
 
   if __name__ in ('__main__','__builtin__','builtins'):

@@ -35,9 +35,9 @@
             "i": "soc-overview-model",
             "h": 2,
             "items": [
-              { "sectionItemType": "field", "id": "soc-model",      "fieldId": "model",        "height": 22, "index": 0, "startCol": 0, "endCol": 1 },
-              { "sectionItemType": "field", "id": "soc-model-type", "fieldId": "model_type",   "height": 22, "index": 1, "startCol": 1, "endCol": 2 },
-              { "sectionItemType": "field", "id": "soc-score",      "fieldId": "score",        "height": 22, "index": 2, "startCol": 2, "endCol": 3 }
+              { "sectionItemType": "field", "id": "soc-model",      "fieldId": "model",      "height": 22, "index": 0, "startCol": 0, "endCol": 1 },
+              { "sectionItemType": "field", "id": "soc-model-type", "fieldId": "model_type", "height": 22, "index": 1, "startCol": 1, "endCol": 2 },
+              { "sectionItemType": "field", "id": "soc-score",      "fieldId": "score",      "height": 22, "index": 2, "startCol": 2, "endCol": 3 }
             ],
             "maxH": null, "maxW": 3, "minH": 1, "minW": 1, "moved": false, "static": false, "w": 3, "x": 0, "y": 2
           }
@@ -50,19 +50,25 @@
         "type": "custom",
         "sections": [
           {
-            "displayType": "dynamic",
+            "displayType": "scripts",
+            "type": "scripts",
             "name": "Entities",
             "i": "soc-entities-table",
-            "type": "dynamic",
-            "script": "TrendMicroBuildEntitiesTableXSIAM",
-            "args": [
-              { "name": "hostnames_field", "value": "entity_hostnames" },
-              { "name": "hostips_field",   "value": "entity_host_ips" },
-              { "name": "users_field",     "value": "entity_users" },
-              { "name": "files_field",     "value": "entity_files" },
-              { "name": "hashes_field",    "value": "entity_hashes" },
-              { "name": "processes_field", "value": "entity_processes" }
-            ]
+            "h": 2,
+            "scripts": [
+              {
+                "scriptName": "TrendMicroBuildEntitiesTableXSIAM",
+                "args": [
+                  { "name": "hostnames_field", "value": "entity_hostnames" },
+                  { "name": "hostips_field",   "value": "entity_host_ips" },
+                  { "name": "users_field",     "value": "entity_users" },
+                  { "name": "files_field",     "value": "entity_files" },
+                  { "name": "hashes_field",    "value": "entity_hashes" },
+                  { "name": "processes_field", "value": "entity_processes" }
+                ]
+              }
+            ],
+            "maxH": null, "maxW": 3, "minH": 1, "minW": 1, "moved": false, "static": false, "w": 3, "x": 0, "y": 0
           }
         ]
       },
@@ -73,15 +79,21 @@
         "type": "custom",
         "sections": [
           {
-            "displayType": "dynamic",
+            "displayType": "scripts",
+            "type": "scripts",
             "name": "Tactics & Techniques",
             "i": "soc-mitre-chips",
-            "type": "dynamic",
-            "script": "TrendMicroMitreBlockXSIAM",
-            "args": [
-              { "name": "tactic_field",     "value": "mitre_tactics" },
-              { "name": "techniques_field", "value": "mitre_technique_ids" }
-            ]
+            "h": 2,
+            "scripts": [
+              {
+                "scriptName": "TrendMicroMitreBlockXSIAM",
+                "args": [
+                  { "name": "tactic_field",     "value": "mitre_tactics" },
+                  { "name": "techniques_field", "value": "mitre_technique_ids" }
+                ]
+              }
+            ],
+            "maxH": null, "maxW": 3, "minH": 1, "minW": 1, "moved": false, "static": false, "w": 3, "x": 0, "y": 0
           }
         ]
       },
@@ -92,23 +104,29 @@
         "type": "custom",
         "sections": [
           {
-            "displayType": "dynamic",
+            "displayType": "scripts",
+            "type": "scripts",
             "name": "Raw Alert JSON (pretty)",
             "i": "soc-raw-json",
-            "type": "dynamic",
-            "script": "DisplayTrendMicroEvidenceXSIAM",
-            "args": [
-              { "name": "json_field_candidates", "value": "raw_json,rawJSON,xdrrawlog,sourceRawEvent,_alert_data,raw_event,_raw_log" }
-            ]
+            "h": 2,
+            "scripts": [
+              {
+                "scriptName": "DisplayTrendMicroEvidenceXSIAM",
+                "args": [
+                  { "name": "json_field_candidates", "value": "raw_json,rawJSON,xdrrawlog,sourceRawEvent,_alert_data,raw_event,_raw_log" }
+                ]
+              }
+            ],
+            "maxH": null, "maxW": 3, "minH": 1, "minW": 1, "moved": false, "static": false, "w": 3, "x": 0, "y": 0
           }
         ]
       },
 
-      { "id": "workPlan",        "name": "Work Plan",        "type": "workPlan" },
-      { "id": "warRoom",         "name": "War Room",         "type": "warRoom" },
-      { "id": "evidenceBoard",   "name": "Evidence Board",   "type": "evidenceBoard" },
-      { "id": "relatedIncidents","name": "Related Incidents","type": "relatedIncidents" },
-      { "id": "canvas",          "name": "Canvas",           "type": "canvas" }
+      { "id": "workPlan",         "name": "Work Plan",         "type": "workPlan" },
+      { "id": "warRoom",          "name": "War Room",          "type": "warRoom" },
+      { "id": "evidenceBoard",    "name": "Evidence Board",    "type": "evidenceBoard" },
+      { "id": "relatedIncidents", "name": "Related Incidents", "type": "relatedIncidents" },
+      { "id": "canvas",           "name": "Canvas",            "type": "canvas" }
     ]
   },
   "fromServerVersion": "6.2.0",

@@ -2,7 +2,7 @@
     "custom_packs": [
         {
             "id": "trend-rules.zip",
-            "url": "## FILL MANDATORY FIELD ## - UPDATE WITH GITHUB URL OF THE PACK'S ZIP FILE",
+            "url": "https://github.com/Palo-Cortex/soc-trendmicro-visionone/archive/refs/tags/1.0.2.zip",
             "system": "yes"
         }
     ],
