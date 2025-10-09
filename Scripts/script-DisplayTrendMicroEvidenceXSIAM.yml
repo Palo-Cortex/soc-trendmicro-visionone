@@ -2,94 +2,119 @@ commonfields:
   id: DisplayTrendMicroEvidenceXSIAM
   version: -1
 name: DisplayTrendMicroEvidenceXSIAM
-comment: Pretty-print raw Trend Micro payload for legacy layoutscontainer dynamic sections.
+comment: Pretty-print Trend Micro payload. Prefers j / _alert_data.j, then other common raw fields.
 type: python
-tags: [dynamic-section]
+tags:
+  - dynamic-section
 dockerimage: demisto/python3
 enabled: true
 fromversion: 6.2.0
-marketplaces: [marketplacev2]
+marketplaces:
+  - marketplacev2
 args:
   - name: json_field_candidates
-    defaultValue: raw_json,rawJSON,xdrrawlog,sourceRawEvent,_alert_data,raw_event,_raw_log
-    description: Comma-separated candidate fields to search for the raw JSON payload (root and CustomFields are both checked).
+    defaultValue: j,_alert_data.j,_alert_data.raw_json,raw_json,rawJSON,raw_event,_raw_log,sourceRawEvent,xdrrawlog
+    description: Comma-separated candidate fields (dotted paths allowed). j is checked first.
 script: |-
   import json
-  from html import escape
+  try:
+      from html import escape  # py3
+  except Exception:
+      import cgi
+      escape = cgi.escape       # py2
 
-  def get_buckets(inc):
-    buckets = [inc]
-    for k in ('CustomFields', 'customFields', 'alert'):
-      v = inc.get(k)
-      if isinstance(v, dict):
-        buckets.append(v)
-      elif isinstance(v, str):
-        try:
-          buckets.append(json.loads(v))
-        except Exception:
-          pass
-    return buckets
+  def path_get(obj, dotted):
+      cur = obj
+      for p in dotted.split('.'):
+          if isinstance(cur, dict) and p in cur:
+              cur = cur[p]
+          else:
+              return None
+      return cur
 
-  def find_json_blob(inc, candidates):
-    for b in get_buckets(inc):
-      if not isinstance(b, dict):
-        continue
-      for key in candidates:
-        if key in b and b[key]:
-          return b[key]
-    return None
+  def buckets(inc):
+      bs = [inc]
+      for k in ('CustomFields', 'customFields'):
+          v = inc.get(k)
+          if isinstance(v, dict):
+              bs.append(v)
+      ad = inc.get('_alert_data') or (inc.get('CustomFields', {}) or {}).get('_alert_data')
+      if isinstance(ad, dict):
+          bs.append(ad)
+      return bs
 
-  def to_obj(val):
-    if isinstance(val, (dict, list)):
-      return val
-    if isinstance(val, str):
-      s = val.strip()
-      # Try strict first
+  def json_load_lenient(s):
+      if s is None:
+          return None
+      if isinstance(s, bytes):
+          try:
+              s = s.decode('utf-8', 'ignore')
+          except Exception:
+              return None
+      s = s.strip()
+      if not s:
+          return None
+      # try strict, then unescape common \" pattern
       try:
-        return json.loads(s)
+          return json.loads(s)
       except Exception:
-        # Try lenient unescape of \" patterns
-        try:
-          return json.loads(s.replace('\\\"', '\"'))
-        except Exception:
-          return {"_text": s}
-    return {"_unsupported_type": str(type(val))}
+          try:
+              return json.loads(s.replace('\\\"', '\"'))
+          except Exception:
+              return None
 
-  def to_html(obj, depth=4, path=""):
-    if depth < 0:
-      return f"<i>(max depth reached @ {escape(path)})</i>"
-    if isinstance(obj, dict):
-      rows = []
-      for k, v in obj.items():
-        rows.append(f"<tr><td><b>{escape(str(k))}</b></td><td>{to_html(v, depth-1, f'{path}.{k}' if path else k)}</td></tr>")
-      return "<table border='1' cellpadding='4' cellspacing='0'>" + "".join(rows) + "</table>"
-    if isinstance(obj, list):
-      if not obj:
-        return "[]"
-      rows = []
-      for i, v in enumerate(obj[:500]):
-        rows.append(f"<tr><td>{i}</td><td>{to_html(v, depth-1, f'{path}[{i}]')}</td></tr>")
-      return "<table border='1' cellpadding='4' cellspacing='0'>" + "".join(rows) + "</table>"
-    return escape(str(obj))
+  def find_json_blob(inc, cands):
+      # Try each bucket (root, CustomFields, _alert_data) and each candidate (support dotted)
+      for b in buckets(inc):
+          for c in cands:
+              val = path_get(b, c) if '.' in c else b.get(c)
+              if val is None:
+                  continue
+              if isinstance(val, (dict, list)):
+                  return val
+              if isinstance(val, (str, bytes)):
+                  obj = json_load_lenient(val)
+                  if obj is not None:
+                      return obj
+      return None
+
+  def to_html(obj, depth, path):
+      if depth < 0:
+          return "<i>(max depth reached @ {})</i>".format(escape(path))
+      if isinstance(obj, dict):
+          rows = []
+          for k, v in obj.items():
+              cell = to_html(v, depth - 1, "{}.{}".format(path, k) if path else str(k))
+              rows.append("<tr><td><b>{}</b></td><td>{}</td></tr>".format(escape(str(k)), cell))
+          return "<table border='1' cellpadding='4' cellspacing='0'>{}</table>".format("".join(rows))
+      if isinstance(obj, list):
+          if not obj:
+              return "[]"
+          rows = []
+          lim = min(len(obj), 500)
+          for i in range(lim):
+              cell = to_html(obj[i], depth - 1, "{}[{}]".format(path, i))
+              rows.append("<tr><td>{}</td><td>{}</td></tr>".format(i, cell))
+          return "<table border='1' cellpadding='4' cellspacing='0'>{}</table>".format("".join(rows))
+      return escape(str(obj))
 
   def main():
-    inc = demisto.incidents()[0]
-    args = demisto.args()
-    candidates = [s.strip() for s in args.get('json_field_candidates', 'raw_json').split(',') if s.strip()]
+      inc = demisto.incidents()[0]
+      args = demisto.args()
+      cands = [s.strip() for s in args.get('json_field_candidates', 'j,_alert_data.j').split(',') if s.strip()]
 
-    blob = find_json_blob(inc, candidates)
-    if blob is None:
-      demisto.results({
-        'Type': entryTypes['note'],
-        'ContentsFormat': formats['html'],
-        'Contents': "<i>No raw JSON found.</i><br/>Checked: " + escape(", ".join(candidates))
-      })
-      return
+      data = find_json_blob(inc, cands)
+      if data is None:
+          demisto.results({
+              'Type': entryTypes['note'],
+              'ContentsFormat': formats['html'],
+              'Contents': "<i>No JSON found.</i><br/>Checked: {}".format(escape(", ".join(cands)))
+          })
+          return
 
-    obj = to_obj(blob)
-    html = "<div style='font-family:monospace;font-size:12px'>" + to_html(obj, depth=4) + "</div>"
-    demisto.results({'Type': entryTypes['note'], 'ContentsFormat': formats['html'], 'Contents': html})
+      html = "<div style='font-family:monospace;font-size:12px'>{}</div>".format(to_html(data, depth=4, path=""))
+      demisto.results({'Type': entryTypes['note'], 'ContentsFormat': formats['html'], 'Contents': html})
 
   if __name__ in ('__main__','__builtin__','builtins'):
-    main()
+      main()
 outputs: []

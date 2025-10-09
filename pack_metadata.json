@@ -1,5 +1,5 @@
 {
-    "name": "Trend Micro Enhancement for Cortex XSIAM",
+    "name": "SOC Trend Micro Enhancement for Cortex XSIAM",
     "id": "soc-trendmicro-visionone",
     "description": "This contains enhancement content for Trend Micro Vision One including correlation rules, modeling rules, and layout for XSIAM.",
     "support": "xsoar",

@@ -1,10 +1,18 @@
 {
   "cacheVersn": 0,
+  "close": null,
+  "definitionId": "",
   "description": "SOC layout for Trend Micro Vision One XDR Incidents",
   "detached": false,
+  "details": null,
   "detailsV2": {
     "TypeName": "",
     "tabs": [
+      {
+        "id": "platformOverview",
+        "name": "Overview",
+        "type": "platformOverview"
+      },
       {
         "id": "summary",
         "name": "Legacy Summary",
@@ -13,268 +21,260 @@
       {
         "id": "soc-overview",
         "name": "SOC Overview",
-        "type": "custom",
         "sections": [
           {
             "displayType": "ROW",
-            "name": "Alert Summary",
-            "i": "soc-overview-summary",
             "h": 2,
+            "i": "soc-overview-summary",
             "items": [
               {
-                "sectionItemType": "field",
-                "id": "soc-name",
+                "endCol": 3,
                 "fieldId": "name",
                 "height": 22,
+                "id": "soc-name",
                 "index": 0,
-                "startCol": 0,
-                "endCol": 3
+                "sectionItemType": "field",
+                "startCol": 0
               },
               {
-                "sectionItemType": "field",
-                "id": "soc-severity",
+                "endCol": 1,
                 "fieldId": "severity",
                 "height": 22,
+                "id": "soc-severity",
                 "index": 1,
-                "startCol": 0,
-                "endCol": 1
+                "sectionItemType": "field",
+                "startCol": 0
               },
               {
-                "sectionItemType": "field",
-                "id": "soc-status",
-                "fieldId": "status",
-                "height": 22,
-                "index": 2,
-                "startCol": 1,
-                "endCol": 2
-              },
-              {
-                "sectionItemType": "field",
-                "id": "soc-owner",
-                "fieldId": "owner",
-                "height": 22,
-                "index": 3,
-                "startCol": 2,
-                "endCol": 3
-              },
-              {
-                "sectionItemType": "field",
-                "id": "soc-occurred",
+                "endCol": 1,
                 "fieldId": "occurred",
                 "height": 22,
+                "id": "soc-occurred",
                 "index": 4,
-                "startCol": 0,
-                "endCol": 1
+                "sectionItemType": "field",
+                "startCol": 0
               },
               {
-                "sectionItemType": "field",
-                "id": "soc-created",
-                "fieldId": "dbotcreated",
-                "height": 22,
-                "index": 5,
-                "startCol": 1,
-                "endCol": 2
-              },
-              {
-                "sectionItemType": "field",
-                "id": "soc-updated",
-                "fieldId": "dbotmodified",
-                "height": 22,
-                "index": 6,
-                "startCol": 2,
-                "endCol": 3
-              },
-              {
-                "sectionItemType": "field",
-                "id": "soc-workbench-link",
+                "endCol": 3,
                 "fieldId": "trendmicrovisiononexdrworkbenchlink",
                 "height": 22,
+                "id": "soc-workbench-link",
                 "index": 7,
-                "startCol": 0,
-                "endCol": 3
+                "sectionItemType": "field",
+                "startCol": 0
+              },
+              {
+                "endCol": 2,
+                "fieldId": "status",
+                "height": 22,
+                "id": "soc-status",
+                "index": 2,
+                "sectionItemType": "field",
+                "startCol": 1
+              },
+              {
+                "endCol": 2,
+                "fieldId": "dbotcreated",
+                "height": 22,
+                "id": "soc-created",
+                "index": 5,
+                "sectionItemType": "field",
+                "startCol": 1
+              },
+              {
+                "endCol": 3,
+                "fieldId": "owner",
+                "height": 22,
+                "id": "soc-owner",
+                "index": 3,
+                "sectionItemType": "field",
+                "startCol": 2
+              },
+              {
+                "endCol": 3,
+                "fieldId": "dbotmodified",
+                "height": 22,
+                "id": "soc-updated",
+                "index": 6,
+                "sectionItemType": "field",
+                "startCol": 2
               }
             ],
-            "maxH": null,
             "maxW": 3,
-            "minH": 1,
-            "minW": 1,
             "moved": false,
+            "name": "Alert Summary",
             "static": false,
-            "w": 3,
+            "w": 2,
             "x": 0,
             "y": 0
           },
           {
             "displayType": "ROW",
-            "name": "Model & Scoring",
-            "i": "soc-overview-model",
             "h": 2,
+            "i": "soc-overview-model",
             "items": [
               {
-                "sectionItemType": "field",
-                "id": "soc-model",
+                "endCol": 1,
                 "fieldId": "model",
                 "height": 22,
+                "id": "soc-model",
                 "index": 0,
-                "startCol": 0,
-                "endCol": 1
+                "sectionItemType": "field",
+                "startCol": 0
               },
               {
-                "sectionItemType": "field",
-                "id": "soc-model-type",
+                "endCol": 2,
                 "fieldId": "model_type",
                 "height": 22,
+                "id": "soc-model-type",
                 "index": 1,
-                "startCol": 1,
-                "endCol": 2
+                "sectionItemType": "field",
+                "startCol": 1
               },
               {
-                "sectionItemType": "field",
-                "id": "soc-score",
+                "endCol": 3,
                 "fieldId": "score",
                 "height": 22,
+                "id": "soc-score",
                 "index": 2,
-                "startCol": 2,
-                "endCol": 3
+                "sectionItemType": "field",
+                "startCol": 2
               }
             ],
-            "maxH": null,
+            "maxW": 3,
+            "moved": false,
+            "name": "Model & Scoring",
+            "static": false,
+            "w": 3,
+            "x": 0,
+            "y": 4
+          },
+          {
+            "h": 2,
+            "i": "soc-overview-f11ec954-e379-48f7-b060-29ade4836f10",
+            "items": [],
             "maxW": 3,
             "minH": 1,
-            "minW": 1,
             "moved": false,
+            "name": "Notes",
             "static": false,
+            "type": "notes",
+            "w": 1,
+            "x": 2,
+            "y": 0
+          },
+          {
+            "h": 2,
+            "i": "soc-overview-249fb855-14ce-4bb1-94cc-22578341427d",
+            "items": [],
+            "maxW": 3,
+            "minH": 1,
+            "moved": false,
+            "name": "Malicious or Suspicious Indicators",
+            "query": "reputation:Bad or reputation:Suspicious",
+            "queryType": "input",
+            "static": false,
+            "type": "indicators",
             "w": 3,
             "x": 0,
             "y": 2
           }
-        ]
+        ],
+        "type": "custom"
       },
       {
         "id": "soc-entities",
         "name": "Entities & IOCs",
-        "type": "custom",
         "sections": [
           {
-            "displayType": "scripts",
-            "type": "scripts",
-            "name": "Entities",
-            "i": "soc-entities-table",
-            "h": 2,
-            "scripts": [
-              {
-                "scriptName": "TrendMicroBuildEntitiesTableXSIAM",
-                "args": [
-                  {
-                    "name": "hostnames_field",
-                    "value": "entity_hostnames"
-                  },
-                  {
-                    "name": "hostips_field",
-                    "value": "entity_host_ips"
-                  },
-                  {
-                    "name": "users_field",
-                    "value": "entity_users"
-                  },
-                  {
-                    "name": "files_field",
-                    "value": "entity_files"
-                  },
-                  {
-                    "name": "hashes_field",
-                    "value": "entity_hashes"
-                  },
-                  {
-                    "name": "processes_field",
-                    "value": "entity_processes"
-                  }
-                ]
-              }
-            ],
-            "maxH": null,
+            "h": 5,
+            "i": "soc-entities-a8805b58-77e0-4ff0-a1bf-6d07465ea2b7",
+            "items": [],
             "maxW": 3,
             "minH": 1,
-            "minW": 1,
             "moved": false,
+            "name": "Entities",
+            "query": "TrendMicroBuildEntitiesTableXSIAM",
+            "queryType": "script",
             "static": false,
+            "type": "dynamic",
             "w": 3,
             "x": 0,
             "y": 0
           }
-        ]
+        ],
+        "type": "custom"
       },
       {
         "id": "soc-mitre",
         "name": "MITRE ATT&CK",
-        "type": "custom",
         "sections": [
           {
-            "displayType": "scripts",
-            "type": "scripts",
-            "name": "Tactics & Techniques",
-            "i": "soc-mitre-chips",
-            "h": 2,
-            "scripts": [
-              {
-                "scriptName": "TrendMicroMitreBlockXSIAM",
-                "args": [
-                  {
-                    "name": "tactic_field",
-                    "value": "mitre_tactics"
-                  },
-                  {
-                    "name": "techniques_field",
-                    "value": "mitre_technique_ids"
-                  }
-                ]
-              }
-            ],
-            "maxH": null,
+            "h": 5,
+            "i": "soc-mitre-9a9574a6-d1dc-46ed-bfe6-9cb1c1a0a850",
+            "items": [],
             "maxW": 3,
             "minH": 1,
-            "minW": 1,
             "moved": false,
+            "name": "Tactics & Techniques",
+            "query": "TrendMicroMitreBlockXSIAM",
+            "queryType": "script",
             "static": false,
+            "type": "dynamic",
             "w": 3,
             "x": 0,
             "y": 0
           }
-        ]
+        ],
+        "type": "custom"
       },
       {
         "id": "soc-raw",
         "name": "Raw JSON",
-        "type": "custom",
         "sections": [
           {
-            "displayType": "scripts",
-            "type": "scripts",
-            "name": "Raw Alert JSON (pretty)",
-            "i": "soc-raw-json",
-            "h": 2,
-            "scripts": [
-              {
-                "scriptName": "DisplayTrendMicroEvidenceXSIAM",
-                "args": [
-                  {
-                    "name": "json_field_candidates",
-                    "value": "raw_json,rawJSON,xdrrawlog,sourceRawEvent,_alert_data,raw_event,_raw_log"
-                  }
-                ]
-              }
-            ],
-            "maxH": null,
+            "h": 6,
+            "i": "soc-raw-63779222-d14e-4730-a3d8-ef1f345e8afe",
+            "items": [],
             "maxW": 3,
             "minH": 1,
-            "minW": 1,
             "moved": false,
+            "name": "Raw JSON",
+            "query": "DisplayTrendMicroEvidenceXSIAM",
+            "queryType": "script",
             "static": false,
+            "type": "dynamic",
             "w": 3,
             "x": 0,
             "y": 0
           }
-        ]
+        ],
+        "type": "custom"
+      },
+      {
+        "id": "soc-actions",
+        "name": "Actions",
+        "sections": [
+          {
+            "displayType": "scripts",
+            "h": 1,
+            "i": "soc-actions-quick",
+            "name": "Quick Actions",
+            "scripts": [
+              {
+                "args": [],
+                "argsObject": {},
+                "name": "TrendMicroQuickActionsXSIAM",
+                "scriptName": "TrendMicroQuickActionsXSIAM"
+              }
+            ],
+            "type": "scripts",
+            "w": 3,
+            "x": 0,
+            "y": 0
+          }
+        ],
+        "type": "custom"
       },
       {
         "id": "workPlan",
@@ -287,32 +287,32 @@
         "type": "warRoom"
       },
       {
-        "id": "evidenceBoard",
-        "name": "Evidence Board",
-        "type": "evidenceBoard"
-      },
-      {
-        "id": "relatedIncidents",
-        "name": "Related Incidents",
-        "type": "relatedIncidents"
-      },
-      {
         "id": "canvas",
         "name": "Canvas",
         "type": "canvas"
       }
     ]
   },
-  "fromServerVersion": "6.2.0",
-  "toServerVersion": "99.99.99",
+  "edit": null,
+  "fromServerVersion": "0.0.0",
   "group": "incident",
   "id": "SOC Trend Micro Vision One XDR Incident",
-  "name": "SOC Trend Micro Vision One XDR Incident",
+  "indicatorsDetails": null,
+  "indicatorsQuickView": null,
+  "isOverridable": false,
+  "itemVersion": "1.0.2",
   "locked": false,
-  "system": false,
-  "version": -1,
+  "mobile": null,
+  "name": "SOC Trend Micro Vision One XDR Incident",
+  "packID": "",
+  "packName": "SOC Trend Micro Enhancement for Cortex XSIAM",
   "propagationLabels": [
     "all"
   ],
+  "quickView": null,
+  "quickViewV2": null,
+  "system": false,
+  "toServerVersion": "99.99.99",
+  "version": -1,
   "fromVersion": "6.0.0"
 }
