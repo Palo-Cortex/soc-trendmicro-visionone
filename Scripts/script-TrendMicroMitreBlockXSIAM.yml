@@ -1,0 +1,61 @@
+commonfields:
+  id: TrendMicroMitreBlockXSIAM
+  version: -1
+name: TrendMicroMitreBlockXSIAM
+comment: Compact MITRE tactic/technique chip view; accepts list/CSV/JSON string.
+type: python
+tags:
+  - dynamic-section
+  - SOC
+  - SOC_Framework
+enabled: true
+fromversion: 6.10.0
+marketplaces:
+  - marketplacev2
+args:
+  - name: tactic_field
+    defaultValue: mitre_tactics
+  - name: techniques_field
+    defaultValue: mitre_technique_ids
+script: |-
+  import json
+  from html import escape
+
+  def norm(x):
+    if not x:
+      return []
+    if isinstance(x, list):
+      return [str(i) for i in x if str(i).strip()]
+    if isinstance(x, str):
+      s=x.strip()
+      try:
+        obj=json.loads(s)
+        if isinstance(obj, list):
+          return [str(i) for i in obj if str(i).strip()]
+      except Exception:
+        pass
+      for d in [',',';','|',' ']:
+        if d in s:
+          return [i.strip() for i in s.split(d) if i.strip()]
+      return [s]
+    return [str(x)]
+
+  def pill(items):
+    if not items:
+      return "<i>No data</i>"
+    return "".join([
+      f"<span style='display:inline-block;border:1px solid #aaa;border-radius:10px;padding:2px 8px;margin:2px'>{escape(i)}</span>"
+      for i in items
+    ])
+
+  def main():
+    args=demisto.args()
+    inc=demisto.incidents()[0].get('CustomFields',{})
+    tactics=norm(inc.get(args.get('tactic_field','mitre_tactics')))
+    techs=norm(inc.get(args.get('techniques_field','mitre_technique_ids')))
+    html=f"<div><h4>MITRE Tactics</h4>{pill(tactics)}</div><div style='margin-top:8px'><h4>Techniques</h4>{pill(techs)}</div>"
+    demisto.results({'Type': entryTypes['note'],'ContentsFormat': formats['html'],'Contents': html})
+
+  if __name__ in ('__main__','__builtin__','builtins'):
+    main()
+outputs: []

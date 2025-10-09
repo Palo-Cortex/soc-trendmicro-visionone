@@ -1,0 +1,92 @@
+commonfields:
+  id: DisplayTrendMicroEvidenceXSIAM
+  version: -1
+name: DisplayTrendMicroEvidenceXSIAM
+comment: Render Trend Micro raw alert JSON as an HTML table, robust to stringified/escaped input.
+type: python
+tags:
+  - dynamic-section
+  - SOC
+  - SOC_Framework
+enabled: true
+fromversion: 6.10.0
+marketplaces:
+  - marketplacev2
+args:
+  - name: json_field_candidates
+    required: false
+    defaultValue: raw_json,rawJSON,xdrrawlog,sourceRawEvent,_alert_data,raw_event,_raw_log
+    description: Comma-separated candidate fields to search for the raw JSON payload.
+script: |-
+  import json
+  from html import escape
+
+  def find_json_blob(incident, candidates):
+    buckets = [incident]
+    for k in ('alert', 'CustomFields', 'customFields', 'rawJSON'):
+      v = incident.get(k)
+      if isinstance(v, dict):
+        buckets.append(v)
+      elif isinstance(v, str):
+        try:
+          buckets.append(json.loads(v))
+        except Exception:
+          pass
+    for bucket in buckets:
+      if not isinstance(bucket, dict):
+        continue
+      for key in candidates:
+        if key in bucket and bucket[key]:
+          return bucket[key]
+    return None
+
+  def coerce_to_obj(raw):
+    if isinstance(raw, (dict, list)):
+      return raw
+    if isinstance(raw, str):
+      s = raw.strip()
+      try:
+        return json.loads(s)
+      except Exception:
+        try:
+          return json.loads(s.replace('\\\"', '\"'))
+        except Exception:
+          return {"_text": s}
+    return {"_unsupported_type": str(type(raw))}
+
+  def json_to_html_table(obj, max_depth=4, path=""):
+    if max_depth < 0:
+      return f"<i>(max depth reached @ {escape(path)})</i>"
+    if isinstance(obj, dict):
+      rows = []
+      for k, v in obj.items():
+        cell = json_to_html_table(v, max_depth-1, f"{path}.{k}" if path else k)
+        rows.append(f"<tr><td><b>{escape(str(k))}</b></td><td>{cell}</td></tr>")
+      return "<table border='1' cellpadding='4' cellspacing='0'>" + "".join(rows) + "</table>"
+    if isinstance(obj, list):
+      if not obj:
+        return "[]"
+      items = []
+      for i, v in enumerate(obj[:500]):
+        items.append(f"<tr><td>{i}</td><td>{json_to_html_table(v, max_depth-1, f'{path}[{i}]')}</td></tr>")
+      return "<table border='1' cellpadding='4' cellspacing='0'>" + "".join(items) + "</table>"
+    return escape(str(obj))
+
+  def main():
+    args = demisto.args()
+    candidates = [s.strip() for s in args.get('json_field_candidates', 'raw_json').split(',') if s.strip()]
+    inc = demisto.incidents()[0]
+    blob = find_json_blob(inc, candidates)
+
+    if blob is None:
+      demisto.results({'Type': entryTypes['note'], 'ContentsFormat': formats['html'],
+                       'Contents': "<i>No raw JSON field found. Checked: {}</i>".format(", ".join(candidates))})
+      return
+
+    obj = coerce_to_obj(blob)
+    html = "<div style='font-family: monospace; font-size: 12px'>" + json_to_html_table(obj) + "</div>"
+    demisto.results({'Type': entryTypes['note'], 'ContentsFormat': formats['html'], 'Contents': html})
+
+  if __name__ in ('__main__', '__builtin__', 'builtins'):
+    main()
+outputs: []

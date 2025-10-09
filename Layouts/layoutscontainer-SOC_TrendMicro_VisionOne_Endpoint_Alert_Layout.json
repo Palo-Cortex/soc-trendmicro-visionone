@@ -1,0 +1,123 @@
+{
+  "cacheVersn": 0,
+  "description": "SOC layout for Trend Micro Vision One XDR Incidents",
+  "detached": false,
+  "detailsV2": {
+    "TypeName": "",
+    "tabs": [
+      { "id": "summary", "name": "Legacy Summary", "type": "summary" },
+
+      {
+        "id": "soc-overview",
+        "name": "SOC Overview",
+        "type": "custom",
+        "sections": [
+          {
+            "displayType": "ROW",
+            "name": "Alert Summary",
+            "i": "soc-overview-summary",
+            "h": 2,
+            "items": [
+              { "sectionItemType": "field", "id": "soc-name",           "fieldId": "name",           "height": 22, "index": 0, "startCol": 0, "endCol": 3 },
+              { "sectionItemType": "field", "id": "soc-severity",       "fieldId": "severity",       "height": 22, "index": 1, "startCol": 0, "endCol": 1 },
+              { "sectionItemType": "field", "id": "soc-status",         "fieldId": "status",         "height": 22, "index": 2, "startCol": 1, "endCol": 2 },
+              { "sectionItemType": "field", "id": "soc-owner",          "fieldId": "owner",          "height": 22, "index": 3, "startCol": 2, "endCol": 3 },
+              { "sectionItemType": "field", "id": "soc-occurred",       "fieldId": "occurred",       "height": 22, "index": 4, "startCol": 0, "endCol": 1 },
+              { "sectionItemType": "field", "id": "soc-created",        "fieldId": "dbotcreated",    "height": 22, "index": 5, "startCol": 1, "endCol": 2 },
+              { "sectionItemType": "field", "id": "soc-updated",        "fieldId": "dbotmodified",   "height": 22, "index": 6, "startCol": 2, "endCol": 3 },
+              { "sectionItemType": "field", "id": "soc-workbench-link", "fieldId": "trendmicrovisiononexdrworkbenchlink", "height": 22, "index": 7, "startCol": 0, "endCol": 3 }
+            ],
+            "maxH": null, "maxW": 3, "minH": 1, "minW": 1, "moved": false, "static": false, "w": 3, "x": 0, "y": 0
+          },
+          {
+            "displayType": "ROW",
+            "name": "Model & Scoring",
+            "i": "soc-overview-model",
+            "h": 2,
+            "items": [
+              { "sectionItemType": "field", "id": "soc-model",      "fieldId": "model",        "height": 22, "index": 0, "startCol": 0, "endCol": 1 },
+              { "sectionItemType": "field", "id": "soc-model-type", "fieldId": "model_type",   "height": 22, "index": 1, "startCol": 1, "endCol": 2 },
+              { "sectionItemType": "field", "id": "soc-score",      "fieldId": "score",        "height": 22, "index": 2, "startCol": 2, "endCol": 3 }
+            ],
+            "maxH": null, "maxW": 3, "minH": 1, "minW": 1, "moved": false, "static": false, "w": 3, "x": 0, "y": 2
+          }
+        ]
+      },
+
+      {
+        "id": "soc-entities",
+        "name": "Entities & IOCs",
+        "type": "custom",
+        "sections": [
+          {
+            "displayType": "dynamic",
+            "name": "Entities",
+            "i": "soc-entities-table",
+            "type": "dynamic",
+            "script": "TrendMicroBuildEntitiesTableXSIAM",
+            "args": [
+              { "name": "hostnames_field", "value": "entity_hostnames" },
+              { "name": "hostips_field",   "value": "entity_host_ips" },
+              { "name": "users_field",     "value": "entity_users" },
+              { "name": "files_field",     "value": "entity_files" },
+              { "name": "hashes_field",    "value": "entity_hashes" },
+              { "name": "processes_field", "value": "entity_processes" }
+            ]
+          }
+        ]
+      },
+
+      {
+        "id": "soc-mitre",
+        "name": "MITRE ATT&CK",
+        "type": "custom",
+        "sections": [
+          {
+            "displayType": "dynamic",
+            "name": "Tactics & Techniques",
+            "i": "soc-mitre-chips",
+            "type": "dynamic",
+            "script": "TrendMicroMitreBlockXSIAM",
+            "args": [
+              { "name": "tactic_field",     "value": "mitre_tactics" },
+              { "name": "techniques_field", "value": "mitre_technique_ids" }
+            ]
+          }
+        ]
+      },
+
+      {
+        "id": "soc-raw",
+        "name": "Raw JSON",
+        "type": "custom",
+        "sections": [
+          {
+            "displayType": "dynamic",
+            "name": "Raw Alert JSON (pretty)",
+            "i": "soc-raw-json",
+            "type": "dynamic",
+            "script": "DisplayTrendMicroEvidenceXSIAM",
+            "args": [
+              { "name": "json_field_candidates", "value": "raw_json,rawJSON,xdrrawlog,sourceRawEvent,_alert_data,raw_event,_raw_log" }
+            ]
+          }
+        ]
+      },
+
+      { "id": "workPlan",        "name": "Work Plan",        "type": "workPlan" },
+      { "id": "warRoom",         "name": "War Room",         "type": "warRoom" },
+      { "id": "evidenceBoard",   "name": "Evidence Board",   "type": "evidenceBoard" },
+      { "id": "relatedIncidents","name": "Related Incidents","type": "relatedIncidents" },
+      { "id": "canvas",          "name": "Canvas",           "type": "canvas" }
+    ]
+  },
+  "fromServerVersion": "6.2.0",
+  "toServerVersion": "99.99.99",
+  "group": "incident",
+  "id": "SOC Trend Micro Vision One XDR Incident",
+  "name": "SOC Trend Micro Vision One XDR Incident",
+  "locked": false,
+  "system": false,
+  "version": -1,
+  "propagationLabels": ["all"]
+}

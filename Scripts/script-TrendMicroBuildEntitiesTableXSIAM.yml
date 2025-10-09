@@ -1,0 +1,87 @@
+commonfields:
+  id: TrendMicroBuildEntitiesTableXSIAM
+  version: -1
+name: TrendMicroBuildEntitiesTableXSIAM
+comment: Build a compact Entities/IOC table; flattens array-like values and strips embedded quotes.
+type: python
+tags:
+  - dynamic-section
+  - SOC
+  - SOC_Framework
+enabled: true
+fromversion: 6.10.0
+marketplaces:
+  - marketplacev2
+args:
+  - name: hostnames_field
+    defaultValue: entity_hostnames
+  - name: hostips_field
+    defaultValue: entity_host_ips
+  - name: users_field
+    defaultValue: entity_users
+  - name: files_field
+    defaultValue: entity_files
+  - name: hashes_field
+    defaultValue: entity_hashes
+  - name: processes_field
+    defaultValue: entity_processes
+script: |-
+  import json
+
+  def norm(x):
+    if x is None:
+      return []
+    if isinstance(x, list):
+      out=[]
+      for v in x:
+        if isinstance(v, str):
+          s=v.strip()
+          if s.startswith('"') and s.endswith('"') and len(s)>=2:
+            s=s[1:-1]
+          out.append(s)
+        else:
+          out.append(str(v))
+      return [s for s in out if s]
+    if isinstance(x, str):
+      s=x.strip()
+      try:
+        obj=json.loads(s)
+        if isinstance(obj, list):
+          return [str(i).strip('"') for i in obj]
+      except Exception:
+        pass
+      for d in ['|', ',', ';']:
+        if d in s:
+          return [i.strip().strip('"') for i in s.split(d) if i.strip()]
+      return [s.strip('"')] if s else []
+    return [str(x)]
+
+  def table_md(rows, headers):
+    out=["| "+ " | ".join(headers) +" |","| "+ " | ".join(["---"]*len(headers)) +" |"]
+    for r in rows:
+      out.append("| "+ " | ".join(r) +" |")
+    return "\n".join(out)
+
+  def main():
+    args=demisto.args()
+    inc=demisto.incidents()[0].get('CustomFields', {})
+    hosts=norm(inc.get(args.get('hostnames_field','entity_hostnames')))
+    ips=norm(inc.get(args.get('hostips_field','entity_host_ips')))
+    users=norm(inc.get(args.get('users_field','entity_users')))
+    files=norm(inc.get(args.get('files_field','entity_files')))
+    hashes=norm(inc.get(args.get('hashes_field','entity_hashes')))
+    procs=norm(inc.get(args.get('processes_field','entity_processes')))
+
+    maxlen=max(len(hosts),len(ips),len(users),len(files),len(hashes),len(procs),1)
+    def pad(lst): return lst+[""]*(maxlen-len(lst))
+
+    rows=[]
+    for i in range(maxlen):
+      rows.append([pad(hosts)[i],pad(ips)[i],pad(users)[i],pad(files)[i],pad(hashes)[i],pad(procs)[i]])
+
+    md=table_md(rows,["Hostname","IP","User","File","Hash","Process"])
+    demisto.results({'Type': entryTypes['note'], 'ContentsFormat': formats['markdown'], 'Contents': md})
+
+  if __name__ in ('__main__','__builtin__','builtins'):
+    main()
+outputs: []

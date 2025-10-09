@@ -1,0 +1,183 @@
+action: ALERTS
+alert_category: OTHER
+alert_description: $alert_description
+alert_domain: DOMAIN_SECURITY
+alert_fields:
+  action_file_path: filepath
+  action_local_ip: local_ip
+  action_remote_ip: remote_ips
+  actor_effective_username: user_name
+  actor_process_command_line: cmdline
+  actor_process_image_name: filename
+  actor_process_image_path: filepath
+  actor_process_image_sha256: sha256
+  additionalindicators: ioc_value
+  agent_device_domain: domain
+  agent_hostname: hostname
+  agent_id: agent_id
+  eventaction: ioc_source
+  external_pivot_url: workbench_link
+  externallink: workbench_link
+  filehash: sha256
+  mac: mac_address
+  parentprocessname: parent_process_name
+  parentprocesspath: parent_process_path
+  prenatsourceip: local_ip
+  processmd5: md5
+  severity: severity_name
+  tim_main_indicator: ioc_value
+  userid: user_principal
+  usersid: user_id
+alert_name: Trend Micro - $alert_name
+alert_type: null
+crontab: null
+dataset: alerts
+description: null
+drilldown_query_timeframe: ALERT
+execution_mode: REAL_TIME
+global_rule_id: SOC Trend Micro Vision One V3 Alerts - Execution (TA0002)
+investigation_query_link: ''
+is_enabled: true
+lookup_mapping: []
+mapping_strategy: CUSTOM
+mitre_defs:
+  TA0002 - Execution: []
+  TA0040 - Impact: []
+name: SOC Trend Micro Vision One V3 Alerts - Execution (TA0002)
+rule_id: 30
+search_window: null
+severity: User Defined
+simple_schedule: null
+suppression_duration: null
+suppression_enabled: false
+suppression_fields: null
+timezone: null
+user_defined_category: null
+user_defined_severity: severity
+xql_query: "dataset = trend_micro_vision_one_v3_generic_alert_raw \n| filter alert_provider\
+  \ = \"SAE\"\n\n| alter j = _alert_data -> raw_json\n\n/* Limit search to the technique-IDs\
+  \ node, then match quoted IDs */\n| alter mitre_ids_str = to_string(j -> matched_rules[])\n\
+  \n\n/* match any Execution technique (quoted to avoid partial matches) */\n| filter\
+  \ mitre_ids_str contains \"T1059\"    /* Command & Scripting */\n    or  mitre_ids_str\
+  \ contains \"T1204\"    /* User Execution */\n    or  mitre_ids_str contains \"\
+  T1047\"    /* WMI */\n    or  mitre_ids_str contains \"T1106\"    /* Native API\
+  \ */\n    or  mitre_ids_str contains \"T1129\"    /* Shared Modules */\n    or \
+  \ mitre_ids_str contains \"T1623\"    /* L2/3 Event-Triggered Exec */\n    or  mitre_ids_str\
+  \ contains \"T1569\"    /* System Services */\n    or  mitre_ids_str contains \"\
+  T1028\"    /* WinRM */\n    or  mitre_ids_str contains \"T1072\"    /* Remote Services\
+  \ */\n    or  mitre_ids_str contains \"T1035\"    /* Service Execution */\n    or\
+  \  mitre_ids_str contains \"T1559\"    /* IPC */\n    or  mitre_ids_str contains\
+  \ \"T1049\"    /* Net Connections (often Exec) */\n    or  mitre_ids_str contains\
+  \ \"T1127\"    /* Trusted Dev Utils Proxy Exec */\n    or  mitre_ids_str contains\
+  \ \"T1203\"    /* Exploit for Client Exec */\n    or  mitre_ids_str contains \"\
+  T1053\"    /* Scheduled Task/Job */\n    or  mitre_ids_str contains \"T1064\"  \
+  \  /* Scripting (alias of T1059) */\n    or  mitre_ids_str contains \"T1609\"  \
+  \  /* Container Admin Cmd */\n    or  mitre_ids_str contains \"T1610\"    /* Deploy\
+  \ Container */\n    or  mitre_ids_str contains \"T1621\"    /* MFA Request Gen */\n\
+  \    or  mitre_ids_str contains \"T1648\"    /* Serverless Exec */\n           \n\
+  \n| alter\n    id                       = j -> id,\n    schema_version         \
+  \  = j -> schema_version,\n    status                   = j -> status,\n    investigation_status\
+  \     = j -> investigation_status,\n    investigation_result     = j -> investigation_result,\n\
+  \    workbench_link           = j -> workbench_link,\n    alert_provider       \
+  \    = j -> alert_provider,\n    alert_Name                    = j -> model,\n \
+  \   model_type               = j -> model_type,\n    score                    =\
+  \ to_integer(j -> score),\n    severity                 = j -> severity,\n    created_date_time_raw\
+  \    = j -> created_date_time,\n    updated_date_time_raw    = j -> updated_date_time,\n\
+  \    incident_id              = j -> incident_id,\n    case_id                 \
+  \ = j -> case_id,\n    alert_description        = j -> description\n| alter\n  \
+  \  indicators = j -> indicators[],\n    entities   = j -> impact_scope.entities[],\n\
+  \    matched_rules = j -> matched_rules.matched_filters[]\n| alter\n    indicator_command_lines\
+  \ =\n        arraymap(\n          arrayfilter(indicators,\n            json_extract_scalar(\"\
+  @element\",\"$.type\") = \"command_line\"\n          ),\n          json_extract_scalar(\"\
+  @element\",\"$.value\")\n        ),\n    indicator_file_sha1 =\n        arraymap(\n\
+  \          arrayfilter(indicators,\n            json_extract_scalar(\"@element\"\
+  ,\"$.type\") = \"file_sha1\"\n          ),\n          json_extract_scalar(\"@element\"\
+  ,\"$.value\")\n        ),\n    indicator_file_sha256 =\n        arraymap(\n    \
+  \      arrayfilter(indicators,\n            json_extract_scalar(\"@element\",\"\
+  $.type\") = \"file_sha256\"\n          ),\n          json_extract_scalar(\"@element\"\
+  ,\"$.value\")\n        ),\n    indicator_process_file_path =\n        arraymap(\n\
+  \          arrayfilter(indicators,\n            json_extract_scalar(\"@element\"\
+  ,\"$.field\") = \"processFilePath\"\n          ),\n          json_extract_scalar(\"\
+  @element\",\"$.value\")\n        ),\n    indicator_parent_file_path =\n        arraymap(\n\
+  \          arrayfilter(indicators,\n            json_extract_scalar(\"@element\"\
+  ,\"$.field\") = \"parentFilePath\"\n          ),\n          json_extract_scalar(\"\
+  @element\",\"$.value\")\n        ),\n    indicator_filename =\n        arraymap(\n\
+  \          arrayfilter(indicators,\n            json_extract_scalar(\"@element\"\
+  ,\"$.field\") = \"filename\"\n          ),\n          json_extract_scalar(\"@element\"\
+  ,\"$.value\")\n        ),\n    indicator_object_file_path =\n        arraymap(\n\
+  \          arrayfilter(indicators,\n            json_extract_scalar(\"@element\"\
+  ,\"$.field\") = \"objectFilePath\"\n          ),\n          json_extract_scalar(\"\
+  @element\",\"$.value\")\n        ),\n    indicator_ips_interested =\n        arraymap(\n\
+  \          arrayfilter(indicators,\n            json_extract_scalar(\"@element\"\
+  ,\"$.field\") = \"interestedIp\"\n          ),\n          json_extract_scalar(\"\
+  @element\",\"$.value\")\n        ),\n    indicator_ips_peer =\n        arraymap(\n\
+  \          arrayfilter(indicators,\n            json_extract_scalar(\"@element\"\
+  ,\"$.field\") = \"peerIp\"\n          ),\n          json_extract_scalar(\"@element\"\
+  ,\"$.value\")\n        ),\n    entity_hosts =\n        arraymap(\n          arrayfilter(entities,\n\
+  \            json_extract_scalar(\"@element\",\"$.entity_type\") = \"host\"\n  \
+  \        ),\n          json_extract_scalar(\"@element\",\"$.entity_value.name\"\
+  )\n        ),\n    entity_host_ips =\n        arraymap(\n          arrayfilter(entities,\n\
+  \            json_extract_scalar(\"@element\",\"$.entity_type\") = \"host\"\n  \
+  \        ),\n          json_extract_scalar(\"@element\",\"$.entity_value.ips[0]\"\
+  )\n        )\n| alter\n    entity_hosts_str = arraystring(entity_hosts, \", \"),\n\
+  \    entity_host_ips_str = arraystring(entity_host_ips, \", \")\n| alter\n    entity_host_ips_str\
+  \ = replace(entity_host_ips_str, \"\\\"\", \"\")\n/* Extract host and user entities\
+  \ */\n| alter\n  ent_hosts = arrayfilter(entities, json_extract_scalar(\"@element\"\
+  ,\"$.entity_type\") = \"host\"),\n  ent_users = arrayfilter(entities, json_extract_scalar(\"\
+  @element\",\"$.entity_type\") = \"user\")\n\n| alter\n  hostnames_arr = arraymap(ent_hosts,\
+  \ json_extract_scalar(\"@element\",\"$.entity_value.name\")),\n  hostips_arr   =\
+  \ arraymap(ent_hosts, json_extract_scalar(\"@element\",\"$.entity_value.ips[0]\"\
+  )),\n  hostmacs_arr  = arraymap(ent_hosts,\n                    coalesce(\n    \
+  \                  json_extract_scalar(\"@element\",\"$.entity_value.mac\"),\n \
+  \                     json_extract_scalar(\"@element\",\"$.entity_value.mac_address\"\
+  ),\n                      json_extract_scalar(\"@element\",\"$.entity_value.macs[0]\"\
+  ),\n                      json_extract_scalar(\"@element\",\"$.entity_value.macAddresses[0]\"\
+  )\n                    )\n                  ),\n  agentids_arr  = arraymap(ent_hosts,\n\
+  \                    coalesce(\n                      json_extract_scalar(\"@element\"\
+  ,\"$.entity_value.agent_id\"),\n                      json_extract_scalar(\"@element\"\
+  ,\"$.entity_value.uuid\"),\n                      json_extract_scalar(\"@element\"\
+  ,\"$.entity_value.id\")\n                    )\n                  ),\n  usernames_arr\
+  \ = arraymap(ent_users,\n                    coalesce(\n                      json_extract_scalar(\"\
+  @element\",\"$.entity_value.name\"),\n                      json_extract_scalar(\"\
+  @element\",\"$.entity_value.username\")\n                    )\n               \
+  \   ),\n  userids_arr   = arraymap(ent_users,\n                    coalesce(\n \
+  \                     json_extract_scalar(\"@element\",\"$.entity_value.id\"),\n\
+  \                      json_extract_scalar(\"@element\",\"$.entity_value.sid\"),\n\
+  \                      json_extract_scalar(\"@element\",\"$.entity_value.userId\"\
+  )\n                    )\n                  ),\n  userprinc_arr = arraymap(ent_users,\n\
+  \                    coalesce(\n                      json_extract_scalar(\"@element\"\
+  ,\"$.entity_value.principal\"),\n                      json_extract_scalar(\"@element\"\
+  ,\"$.entity_value.userPrincipalName\")\n                    )\n                \
+  \  )\n\n/* Flatten arrays to single values for display or mapping */\n| alter\n\
+  \  hostname       = arrayindex(hostnames_arr, 0),\n  local_ip       = replace(arrayindex(hostips_arr,\
+  \ 0), \"\\\"\",\"\"),\n  mac_address    = arrayindex(hostmacs_arr, 0),\n  agent_id\
+  \       = arrayindex(agentids_arr, 0),\n  user_name      = arrayindex(usernames_arr,\
+  \ 0),\n  user_id        = arrayindex(userids_arr, 0),\n  user_principal = arrayindex(userprinc_arr,\
+  \ 0)\n\n/* Process + File indicators */\n| alter\n  indicator_file_md5 =\n    arraymap(arrayfilter(indicators,\
+  \ json_extract_scalar(\"@element\",\"$.type\") = \"file_md5\"),\n             json_extract_scalar(\"\
+  @element\",\"$.value\")),\n  indicator_domain =\n    arraymap(arrayfilter(indicators,\
+  \ json_extract_scalar(\"@element\",\"$.field\") = \"domain\"),\n             json_extract_scalar(\"\
+  @element\",\"$.value\"))\n\n/* Combine process file paths */\n| alter\n  preferred_proc_paths\
+  \ = coalesce(indicator_process_file_path, indicator_object_file_path)\n\n/* Flatten\
+  \ core IOC fields */\n| alter\n  md5                 = arrayindex(indicator_file_md5,\
+  \ 0),\n  sha1                = arrayindex(indicator_file_sha1, 0),\n  sha256   \
+  \           = arrayindex(indicator_file_sha256, 0),\n  filename            = arrayindex(indicator_filename,\
+  \ 0),\n  filepath            = arrayindex(preferred_proc_paths, 0),\n  parent_process_path\
+  \ = arrayindex(indicator_parent_file_path, 0),\n  cmdline             = arrayindex(indicator_command_lines,\
+  \ 0),\n  remote_ips          = arrayindex(indicator_ips_peer, 0),\n  domain    \
+  \          = arrayindex(indicator_domain, 0)\n\n/* Create a pseudo parent_process_name\
+  \ from path */\n| alter\n  parent_process_name = replace(parent_process_path, \"\
+  ^.*[\\\\\\\\/]\", \"\")\n\n/* Aliases matching your layout naming */\n| alter\n\
+  \  severity_name = severity,\n  ioc_value     = coalesce(\n                    arrayindex(indicator_file_sha256,\
+  \ 0),\n                    arrayindex(indicator_file_sha1, 0),\n               \
+  \     arrayindex(indicator_file_md5, 0)\n                  ),\n  ioc_source    =\
+  \ alert_provider\n\n/* Final output */\n| fields\n  id, schema_version, status,\
+  \ investigation_status, investigation_result,\n  workbench_link, alert_provider,\
+  \ alert_name, model_type, score, severity, severity_name,\n  created_date_time_raw,\
+  \ updated_date_time_raw, incident_id, case_id, alert_description,\n  hostname, local_ip,\
+  \ mac_address, agent_id, user_name, user_id, user_principal,\n  filename, filepath,\
+  \ parent_process_path, parent_process_name, cmdline,\n  md5, sha1, sha256, ioc_value,\
+  \ ioc_source, remote_ips, domain,\n  indicator_command_lines, indicator_file_sha1,\
+  \ indicator_file_sha256,\n  indicator_process_file_path, indicator_parent_file_path,\
+  \ indicator_object_file_path,\n  indicator_ips_interested, indicator_ips_peer, indicator_filename,\n\
+  \  entity_hosts_str, entity_host_ips_str, j\n\n"
