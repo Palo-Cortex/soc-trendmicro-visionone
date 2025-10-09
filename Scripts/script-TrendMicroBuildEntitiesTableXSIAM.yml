@@ -5,6 +5,7 @@ name: TrendMicroBuildEntitiesTableXSIAM
 comment: Entities/IOC table for legacy layoutscontainer dynamic sections (works with root or CustomFields).
 type: python
 tags: [dynamic-section]
+dockerimage: demisto/python3
 enabled: true
 fromversion: 6.2.0
 marketplaces: [marketplacev2]
