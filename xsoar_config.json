@@ -6,6 +6,12 @@
             "system": "yes"
         }
     ],
+    "post_config_docs": [
+        {
+            "name": "SOC Trend Micro Vision One Enhancement - Manual Steps",
+            "url": "https://github.com/Palo-Cortex/soc-trendmicro-visionone/blob/main/POST_CONFIG_README.md"
+        }
+    ],
     "marketplace_packs": [
         {
             "id": "AWS",
