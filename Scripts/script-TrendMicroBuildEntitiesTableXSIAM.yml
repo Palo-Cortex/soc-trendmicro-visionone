@@ -2,7 +2,7 @@ commonfields:
   id: TrendMicroBuildEntitiesTableXSIAM
   version: -1
 name: TrendMicroBuildEntitiesTableXSIAM
-comment: Entities/IOC table. Reads incident fields; if empty, parses _alert_data.raw_json impact_scope.entities and indicators list.
+comment: Entities/IOC table. Reads incident fields; if empty, parses _alert_data.raw_json/impact_scope/observables for host/user/ip/hash/file/domain/url.
 type: python
 tags: [dynamic-section]
 dockerimage: demisto/python3
@@ -25,7 +25,6 @@ args:
 script: |-
   import json
 
-  # ---------- helpers ----------
   def get_val(src, key):
     if key in src and src.get(key): return src.get(key)
     cf = src.get('CustomFields') or src.get('customFields') or {}
@@ -63,116 +62,76 @@ script: |-
 
   def load_alert_json(inc):
     # prefer nested _alert_data.raw_json -> JSON
-    ad = inc.get('_alert_data') or (inc.get('CustomFields',{}) or {}).get('_alert_data')
-    if isinstance(ad, dict):
-      raw = ad.get('raw_json')
-      if isinstance(raw, (dict, list)): return raw
-      if isinstance(raw, str):
-        for s in (raw, raw.replace('\\\"','\"')):
-          try: return json.loads(s)
-          except Exception: pass
+    for cand in ('_alert_data',):
+      ad = inc.get(cand) or (inc.get('CustomFields',{}) or {}).get(cand)
+      if isinstance(ad, dict):
+        raw = ad.get('raw_json')
+        if isinstance(raw, (dict,list)): return raw
+        if isinstance(raw, str):
+          for s in (raw, raw.replace('\\\"','\"')):
+            try:
+              return json.loads(s)
+            except Exception:
+              pass
     # fall back to raw_json at root/CF
     for cand in ('raw_json','rawJSON'):
       val = get_val(inc, cand)
       if isinstance(val,(dict,list)): return val
       if isinstance(val,str):
         for s in (val, val.replace('\\\"','\"')):
-          try: return json.loads(s)
-          except Exception: pass
+          try:
+            return json.loads(s)
+          except Exception:
+            pass
     return None
 
-  def extract_from_impact_scope(aj):
-    hosts=set(); ips=set(); users=set()
-    try:
-      scope = aj.get('impact_scope') or {}
-      for ent in scope.get('entities', []) or []:
-        ev = ent.get('entity_value') or {}
-        name = ev.get('name')
-        if name: hosts.add(str(name).strip())
-        for ip in ev.get('ips') or []:
-          if ip: ips.add(str(ip).strip('[]').strip())
-    except Exception:
-      pass
-    return list(hosts), list(ips), list(users)
+  def walk_collect(obj, want):
+    out = {k: set() for k in want}
+    def _w(o):
+      if isinstance(o, dict):
+        for k,v in o.items():
+          lk=k.lower()
+          for w in want:
+            if w in lk:
+              if isinstance(v, (str,int,float)):
+                out[w].add(str(v))
+              elif isinstance(v, list):
+                for it in v:
+                  if isinstance(it,(str,int,float)): out[w].add(str(it))
+          _w(v)
+      elif isinstance(o, list):
+        for it in o: _w(it)
+    _w(obj)
+    return {k: [s for s in sorted(v) if s] for k,v in out.items()}
 
-  def find_indicators_array(aj):
-    # Prefer aj['indicators'] if present, else scan for a list of dicts that look like indicators (have 'type' and 'value').
-    if isinstance(aj.get('indicators'), list):
-      return aj.get('indicators')
-    for k,v in aj.items():
-      if isinstance(v, list) and v and all(isinstance(i, dict) for i in v):
-        sample = v[0]
-        if ('type' in sample and 'value' in sample) or ('[HOST:1303]' in sample and '[HOST:cd42]' in sample):
-          return v
-    return []
-
-  def extract_from_indicators(aj):
-    hosts=set(); ips=set(); users=set(); files=set(); hashes=set(); domains=set(); urls=set(); procs=set()
-    inds = find_indicators_array(aj)
-    for it in inds:
-      t = it.get('type') or it.get('[HOST:1303]')  # obfuscated fallback
-      val = it.get('value') or it.get('[HOST:cd42]')
-      if not t or val is None:
-        continue
-      # Endpoint objects sometimes come as dict with {guid, ips[], name}
-      if isinstance(val, dict):
-        name = val.get('name')
-        if name: hosts.add(str(name).strip())
-        for ip in val.get('ips') or []:
-          if ip: ips.add(str(ip).strip('[]').strip())
-      else:
-        sval = str(val).strip()
-        if t in ('file_sha256','sha256'):
-          hashes.add(sval)
-        elif t in ('file_sha1','sha1'):
-          hashes.add(sval)
-        elif t in ('domain','fqdn'):
-          domains.add(sval)
-        elif t in ('ip','dst_ip','src_ip'):
-          ips.add(sval)
-        elif t in ('url','uri'):
-          urls.add(sval)
-        elif t in ('user','user_account','username'):
-          users.add(sval)
-        elif t in ('process','process_name','image'):
-          procs.add(sval)
-        elif t in ('path','file_path','file_name'):
-          files.add(sval)
-        elif t in ('detection_name',):
-          files.add(sval)  # show detection name in File column for visibility
-    # fold domains/urls into files for the table (keeps 6 columns)
-    files |= domains | urls
-    return list(hosts), list(ips), list(users), list(files), list(hashes), list(procs)
-
-  # ---------- main ----------
   def main():
     inc=demisto.incidents()[0]
     args=demisto.args()
 
-    # 1) try incident fields first
-    hosts  = norm_list(get_val(inc, args.get('hostnames_field','entity_hostnames')))
-    ips    = norm_list(get_val(inc, args.get('hostips_field','entity_host_ips')))
-    users  = norm_list(get_val(inc, args.get('users_field','entity_users')))
-    files  = norm_list(get_val(inc, args.get('files_field','entity_files')))
-    hashes = norm_list(get_val(inc, args.get('hashes_field','entity_hashes')))
-    procs  = norm_list(get_val(inc, args.get('processes_field','entity_processes')))
+    hosts=norm_list(get_val(inc, args.get('hostnames_field','entity_hostnames')))
+    ips  =norm_list(get_val(inc, args.get('hostips_field','entity_host_ips')))
+    users=norm_list(get_val(inc, args.get('users_field','entity_users')))
+    files=norm_list(get_val(inc, args.get('files_field','entity_files')))
+    hashes=norm_list(get_val(inc, args.get('hashes_field','entity_hashes')))
+    procs=norm_list(get_val(inc, args.get('processes_field','entity_processes')))
 
-    # 2) if still light, mine _alert_data.raw_json using your schemas
-    aj = load_alert_json(inc)
-    if aj:
-      ihosts, iips, _ = extract_from_impact_scope(aj)
-      hosts = hosts or ihosts
-      ips   = ips   or iips
+    need_more = not any([hosts, ips, users, files, hashes, procs])
+    if need_more:
+      aj = load_alert_json(inc)
+      if aj:
+        want = ['hostname','host','ip','sha256','sha1','hash','file','domain','url','user','username','process','cmdline','commandline']
+        found = walk_collect(aj, want)
 
-      h2, i2, u2, f2, hs2, p2 = extract_from_indicators(aj)
-      hosts  = hosts  or h2
-      ips    = ips    or i2
-      users  = users  or u2
-      files  = files  or f2
-      hashes = hashes or hs2
-      procs  = procs  or p2
+        hosts  = hosts  or found.get('hostname') or found.get('host') or []
+        ips    = ips    or found.get('ip') or []
+        users  = users  or found.get('username') or found.get('user') or []
+        files  = files  or found.get('file') or []
+        procs  = procs  or found.get('process') or []
+        hashes = hashes or (found.get('sha256') or []) + (found.get('sha1') or []) or found.get('hash') or []
+        domains = found.get('domain') or []
+        urls    = found.get('url') or []
+        files = files + domains + urls
 
-    # 3) render table
     maxlen=max(len(hosts),len(ips),len(users),len(files),len(hashes),len(procs),1)
     def pad(lst): return lst+[""]*(maxlen-len(lst))
     rows=[]

@@ -16,6 +16,7 @@ alert_fields:
   agent_hostname: hostname
   agent_id: agent_id
   eventaction: ioc_source
+  eventid: id
   external_pivot_url: workbench_link
   externallink: workbench_link
   filehash: sha256
@@ -43,7 +44,7 @@ mapping_strategy: CUSTOM
 mitre_defs:
   TA0009 - Collection: []
 name: SOC Trend Micro Vision One V3 Alerts - Collection (TA0009)
-rule_id: 38
+rule_id: 61
 search_window: null
 severity: User Defined
 simple_schedule: null

@@ -4,13 +4,11 @@ commonfields:
 name: TrendMicroMitreBlockXSIAM
 comment: Render MITRE tactic/technique chips from incident fields; fallback to _alert_data.raw_json (matched_rules[].matched_filters[].mitre_technique_ids).
 type: python
-tags:
-  - dynamic-section
+tags: [dynamic-section]
 dockerimage: demisto/python3
 enabled: true
 fromversion: 6.2.0
-marketplaces:
-  - marketplacev2
+marketplaces: [marketplacev2]
 args:
   - name: tactic_field
     defaultValue: mitre_tactics
@@ -18,118 +16,79 @@ args:
     defaultValue: mitre_technique_ids
 script: |-
   import json
-  try:
-      from html import escape  # py3
-  except Exception:
-      import cgi
-      escape = cgi.escape       # py2
+  from html import escape
 
   def get_val(src, key):
-      if key in src and src.get(key):
-          return src.get(key)
-      cf = src.get('CustomFields') or src.get('customFields') or {}
-      return cf.get(key)
+    if key in src and src.get(key): return src.get(key)
+    cf = src.get('CustomFields') or src.get('customFields') or {}
+    return cf.get(key)
 
   def norm_list(x):
-      if not x:
-          return []
-      if isinstance(x, list):
-          out = []
-          for i in x:
-              s = (i if isinstance(i, basestring if str is bytes else str) else str(i))
-              s = s.strip()
-              if s:
-                  out.append(s)
-          return out
-      if isinstance(x, (str, bytes)):
-          s = x.strip() if isinstance(x, str) else x.decode('utf-8', 'ignore').strip()
-          if not s:
-              return []
-          try:
-              o = json.loads(s)
-              if isinstance(o, list):
-                  return [ (i if isinstance(i, str) else str(i)).strip() for i in o if str(i).strip() ]
-          except Exception:
-              pass
-          for d in [',',';','|','\n','\t',' ']:
-              if d in s:
-                  return [ i.strip() for i in s.split(d) if i.strip() ]
-          return [s]
-      return [str(x)]
+    if not x: return []
+    if isinstance(x, list):
+      return [str(i).strip() for i in x if str(i).strip()]
+    if isinstance(x, str):
+      s=x.strip()
+      if not s: return []
+      try:
+        o=json.loads(s)
+        if isinstance(o, list): return [str(i).strip() for i in o if str(i).strip()]
+      except Exception:
+        pass
+      for d in [',',';','|','\n','\t',' ']:
+        if d in s: return [i.strip() for i in s.split(d) if i.strip()]
+      return [s]
+    return [str(x)]
 
   def load_alert_json(inc):
-      ad = inc.get('_alert_data') or (inc.get('CustomFields',{}) or {}).get('_alert_data')
-      if isinstance(ad, dict):
-          r = ad.get('raw_json')
-          if isinstance(r, (dict, list)):
-              return r
-          if isinstance(r, (str, bytes)):
-              for s in (r, r.replace('\\\"','\"') if isinstance(r, str) else r):
-                  try:
-                      return json.loads(s)
-                  except Exception:
-                      pass
-      r2 = get_val(inc, 'raw_json')
-      if isinstance(r2, (dict, list)):
-          return r2
-      if isinstance(r2, (str, bytes)):
-          for s in (r2, r2.replace('\\\"','\"') if isinstance(r2, str) else r2):
-              try:
-                  return json.loads(s)
-              except Exception:
-                  pass
-      return None
+    ad = inc.get('_alert_data') or (inc.get('CustomFields',{}) or {}).get('_alert_data')
+    if isinstance(ad, dict):
+      r = ad.get('raw_json')
+      if isinstance(r,(dict,list)): return r
+      if isinstance(r,str):
+        for s in (r, r.replace('\\\"','\"')):
+          try: return json.loads(s)
+          except Exception: pass
+    r2 = get_val(inc,'raw_json')
+    if isinstance(r2,(dict,list)): return r2
+    if isinstance(r2,str):
+      for s in (r2, r2.replace('\\\"','\"')):
+        try: return json.loads(s)
+        except Exception: pass
+    return None
 
   def extract_mitre(aj):
-      tacts = set()
-      techs = set()
-      if not isinstance(aj, (dict, list)):
-          return list(tacts), list(techs)
-
-      def walk(o):
-          if isinstance(o, dict):
-              for k, v in o.items():
-                  lk = k.lower()
-                  # techniques array commonly lives under matched_rules[*].matched_filters[*].mitre_technique_ids
-                  if 'mitre' in lk and 'technique' in lk:
-                      vals = v if isinstance(v, list) else [v]
-                      for it in vals:
-                          s = str(it).strip()
-                          if s:
-                              techs.add(s)
-                  walk(v)
-          elif isinstance(o, list):
-              for it in o:
-                  walk(it)
-
-      walk(aj)
-      return list(tacts), sorted(techs)
-
+    tacts=set(); techs=set()
+    if not aj: return list(tacts), list(techs)
+    def walk(o):
+      if isinstance(o, dict):
+        for k,v in o.items():
+          lk=k.lower()
+          if 'mitre' in lk and 'technique' in lk:
+            vals = v if isinstance(v, list) else [v]
+            for it in vals:
+              s=str(it).strip()
+              if s: techs.add(s)
+          walk(v)
+      elif isinstance(o, list):
+        for it in o: walk(it)
+    walk(aj)
+    return list(tacts), sorted(techs)
   def pill(items):
-      if not items:
-          return "<i>No data</i>"
-      html_parts = []
-      for i in items:
-          html_parts.append(
-              "<span style='display:inline-block;border:1px solid #aaa;border-radius:10px;padding:2px 8px;margin:2px'>{}</span>".format(escape(i))
-          )
-      return "".join(html_parts)
+    if not items: return "<i>No data</i>"
+    return "".join([f"<span style='display:inline-block;border:1px solid #aaa;border-radius:10px;padding:2px 8px;margin:2px'>{escape(i)}</span>" for i in items])
 
   def main():
-      inc = demisto.incidents()[0]
-      args = demisto.args()
-      tacts = norm_list(get_val(inc, args.get('tactic_field', 'mitre_tactics')))
-      techs = norm_list(get_val(inc, args.get('techniques_field', 'mitre_technique_ids')))
-
-      if not techs:
-          aj = load_alert_json(inc)
-          _, techs = extract_mitre(aj)
-
-      html = "<div><h4>MITRE Tactics</h4>{}</div><div style='margin-top:8px'><h4>Techniques</h4>{}</div>".format(
-          pill(tacts), pill(techs)
-      )
-      demisto.results({'Type': entryTypes['note'], 'ContentsFormat': formats['html'], 'Contents': html})
+    inc=demisto.incidents()[0]
+    args=demisto.args()
+    tacts = norm_list(get_val(inc, args.get('tactic_field','mitre_tactics')))
+    techs = norm_list(get_val(inc, args.get('techniques_field','mitre_technique_ids')))
+    if not techs:
+      aj=load_alert_json(inc)
+      _, techs = extract_mitre(aj)
+    html = f"<div><h4>MITRE Tactics</h4>{pill(tacts)}</div><div style='margin-top:8px'><h4>Techniques</h4>{pill(techs)}</div>"
+    demisto.results({'Type': entryTypes['note'],'ContentsFormat': formats['html'],'Contents': html})
 
   if __name__ in ('__main__','__builtin__','builtins'):
-      main()
+    main()
 outputs: []

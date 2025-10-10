@@ -16,6 +16,7 @@ alert_fields:
   agent_hostname: hostname
   agent_id: agent_id
   eventaction: ioc_source
+  eventid: id
   external_pivot_url: workbench_link
   externallink: workbench_link
   filehash: sha256
@@ -43,7 +44,7 @@ mapping_strategy: CUSTOM
 mitre_defs:
   TA0010 - Exfiltration: []
 name: SOC Trend Micro Vision One V3 Alerts - Exfiltration (TA0010)
-rule_id: 40
+rule_id: 66
 search_window: null
 severity: User Defined
 simple_schedule: null

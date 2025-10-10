@@ -2,7 +2,7 @@ commonfields:
   id: TrendMicroQuickActionsXSIAM
   version: -1
 name: TrendMicroQuickActionsXSIAM
-comment: Quick Actions for Vision One. Prefills args by mining incident fields and _alert_data.raw_json impact_scope.entities + indicators.
+comment: Quick Actions for Vision One. Prefills args by mining incident fields and _alert_data.raw_json.
 type: python
 tags: [dynamic-section]
 dockerimage: demisto/python3
@@ -36,65 +36,33 @@ script: |-
         except Exception: pass
     return None
 
+  def walk_collect(obj, want):
+    out = {k: set() for k in want}
+    def _w(o):
+      if isinstance(o, dict):
+        for k,v in o.items():
+          lk=k.lower()
+          for w in want:
+            if w in lk:
+              if isinstance(v,(str,int,float)): out[w].add(str(v))
+              elif isinstance(v,list):
+                for it in v:
+                  if isinstance(it,(str,int,float)): out[w].add(str(it))
+          _w(v)
+      elif isinstance(o,list):
+        for it in o: _w(it)
+    _w(obj)
+    return {k: [s for s in sorted(v) if s] for k,v in out.items()}
+
   def pick_first(*vals):
     for v in vals:
       if v:
-        if isinstance(v, list):
+        if isinstance(v, list): 
           for it in v:
             if it and str(it).strip(): return str(it)
         elif isinstance(v, (str,int,float)):
           if str(v).strip(): return str(v)
     return ""
-
-  def find_indicators_array(aj):
-    if isinstance(aj.get('indicators'), list):
-      return aj.get('indicators')
-    for k,v in aj.items():
-      if isinstance(v, list) and v and all(isinstance(i, dict) for i in v):
-        sm=v[0]
-        if ('type' in sm and 'value' in sm) or ('[HOST:1303]' in sm and '[HOST:cd42]' in sm):
-          return v
-    return []
-
-  def mine_context_from_json(aj):
-    hostname=""; agentguid=""; username=""; sha256=""; sha1=""; domain=""; ip=""; url=""; obj=""; proc=""; cmdline=""; alert_id=""; msg_id=""
-    # impact_scope.entities[].entity_value.{name, ips[], guid}
-    try:
-      scope = aj.get('impact_scope') or {}
-      for ent in scope.get('entities',[]) or []:
-        ev = ent.get('entity_value') or {}
-        if not hostname and ev.get('name'): hostname = str(ev.get('name')).strip()
-        if not agentguid and ev.get('guid'): agentguid = str(ev.get('guid')).strip()
-        for _ip in ev.get('ips') or []:
-          if not ip and _ip: ip = str(_ip).strip('[]').strip()
-    except Exception: pass
-
-    # indicators[]
-    for it in find_indicators_array(aj):
-      t = it.get('type') or it.get('[HOST:1303]')
-      v = it.get('value') or it.get('[HOST:cd42]')
-      if not t or v is None: continue
-      if isinstance(v, dict):
-        if not hostname and v.get('name'): hostname=str(v.get('name')).strip()
-        if not agentguid and v.get('guid'): agentguid=str(v.get('guid')).strip()
-        if not ip and v.get('ips'):
-          ip = str(v.get('ips')[0]).strip('[]').strip()
-      else:
-        sval=str(v).strip()
-        if not sha256 and t in ('file_sha256','sha256'): sha256=sval
-        if not sha1 and t in ('file_sha1','sha1'): sha1=sval
-        if not domain and t in ('domain','fqdn'): domain=sval
-        if not ip and t in ('ip','dst_ip','src_ip'): ip=sval
-        if not url and t in ('url','uri'): url=sval
-        if not username and t in ('user','user_account','username'): username=sval
-        if not proc and t in ('process','process_name','image'): proc=sval
-        if not obj and t in ('path','file_path','file_name'): obj=sval
-
-    # workbench / alert id (raw json often carries incident_id + workbench_link)
-    alert_id = aj.get('incident_id') or aj.get('workbench_id') or ""
-    # msg_id seldom present here; leave blank if not mapped by parser/playbook
-
-    return hostname, agentguid, username, sha256, sha1, domain, ip, url, obj, proc, cmdline, alert_id, msg_id
 
   def mk(cmd, **kwargs):
     parts=[f"!{cmd}"]
@@ -117,7 +85,6 @@ script: |-
   def main():
     inc = demisto.incidents()[0]
 
-    # Incident fields first
     hostname   = pick_first(get_val(inc,'entity_hostnames'), get_val(inc,'hostname'), get_val(inc,'host'))
     agentguid  = pick_first(get_val(inc,'trendmicrovisiononeagentguid'), get_val(inc,'agentguid'), get_val(inc,'endpoint_guid'))
     username   = pick_first(get_val(inc,'entity_users'), get_val(inc,'username'), get_val(inc,'user'))
@@ -131,29 +98,27 @@ script: |-
     obj        = pick_first(get_val(inc,'entity_files'), get_val(inc,'file_path'), get_val(inc,'filename'))
     proc       = pick_first(get_val(inc,'entity_processes'), get_val(inc,'process'))
     cmdline    = pick_first(get_val(inc,'entity_commandlines'), get_val(inc,'commandline'), get_val(inc,'cmdline'))
-
-    # If still missing, mine raw json using your schemas
-    if not any([hostname, agentguid, username, sha256, sha1, domain, ip, url, alert_id]):
-      aj = load_alert_json(inc)
-      if aj:
-        h,a,u,s256,s1,d,i,uurl,o,p,cl,aid,mid = mine_context_from_json(aj)
-        hostname = hostname or h
-        agentguid= agentguid or a
-        username = username or u
-        sha256   = sha256 or s256
-        sha1     = sha1 or s1
-        domain   = domain or d
-        ip       = ip or i
-        url      = url or uurl
-        obj      = obj or o
-        proc     = proc or p
-        cmdline  = cmdline or cl
-        alert_id = alert_id or aid
-        msg_id   = msg_id or mid
-
     file_hash  = sha256 or sha1
 
-    # Context header
+    if not any([hostname, agentguid, username, file_hash, domain, ip, url, msg_id, alert_id]):
+      aj=load_alert_json(inc)
+      if aj:
+        found = walk_collect(aj, ['hostname','host','agent','agentguid','username','user','sha256','sha1','hash','domain','ip','url','messageid','workbench','alertid','incident_id','file','process','cmdline','commandline'])
+        hostname  = hostname  or pick_first(found.get('hostname'), found.get('host'))
+        agentguid = agentguid or pick_first(found.get('agentguid'), found.get('agent'))
+        username  = username  or pick_first(found.get('username'), found.get('user'))
+        sha256    = sha256    or pick_first(found.get('sha256'))
+        sha1      = sha1      or pick_first(found.get('sha1'), found.get('hash'))
+        domain    = domain    or pick_first(found.get('domain'))
+        ip        = ip        or pick_first(found.get('ip'))
+        url       = url       or pick_first(found.get('url'))
+        msg_id    = msg_id    or pick_first(found.get('messageid'))
+        alert_id  = alert_id  or pick_first(found.get('workbench'), found.get('alertid'), found.get('incident_id'))
+        obj       = obj       or pick_first(found.get('file'))
+        proc      = proc      or pick_first(found.get('process'))
+        cmdline   = cmdline   or pick_first(found.get('commandline'), found.get('cmdline'))
+        file_hash = sha256 or sha1 or file_hash
+
     rows = [
       kv("Hostname", hostname), kv("Agent GUID", agentguid), kv("User", username),
       kv("File Hash", file_hash), kv("Domain", domain), kv("IP", ip), kv("URL", url),
@@ -162,7 +127,6 @@ script: |-
     ]
     context_html = "<table border='1' cellpadding='4' cellspacing='0'>" + "".join(rows) + "</table>"
 
-    # Commands
     containment = [
       mk("trendmicro-visionone-isolate-endpoint", hostName=hostname, agentGuid=agentguid),
       mk("trendmicro-visionone-restore-endpoint-connection", hostName=hostname, agentGuid=agentguid),
