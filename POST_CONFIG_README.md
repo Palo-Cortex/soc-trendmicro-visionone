@@ -30,7 +30,7 @@ Go To: **Settings → Configurations → Object Setup → Layout Rules**
 
 #### 🖼️ Layout Rule Visualization
 
-![Vision One Layout Rules](https://github.com/Palo-Cortex/soc-Vision One-Vision One/blob/main/images/Vision Onelayoutrules.png)
+![Vision One Layout Rules](https://github.com/Palo-Cortex/soc-trendmicro-visionone/blob/main/images/TrendVisionOneLayout.png)
 
 > This layout rule ensures the most relevant fields are presented to analysts working Vision One-related alerts.
 
@@ -42,33 +42,11 @@ Go To: **Detection & Correlation → Correlation Rules**
 
 Enable the following rules:
 
-| Correlation Rule Name                      | MITRE Tactic                   |
-|--------------------------------------------|--------------------------------|
-| `Vision One – Initial Access Correlation` | `TA0001 - Initial Access`      |
-| `Vision One – Execution Correlation`      | `TA0002 - Execution`           |
-| `Vision One – Persistence Correlation`    | `TA0003 - Persistence`         |
-| `Vision One – Privilege Escalation Correlation` | `TA0004 - Privilege Escalation` |
-| `Vision One – Defense Evasion Correlation`| `TA0005 - Defense Evasion`     |
-| *(...continue for all relevant tactics)*   |                                |
+![Vision One Layout Rules](https://github.com/Palo-Cortex/soc-trendmicro-visionone/blob/main/images/TrendVisionCorrelations.png)
 
 > These rules use fields like `MITRE Tactic`, `cmdline`, and `host` to group relevant alerts into single, actionable incidents.
 
-#### 🖼️ Correlation Rules Visualization
-
-![Vision One Correlation Rules](https://github.com/Palo-Cortex/soc-Vision One-Vision One/blob/main/images/Vision Onerules.png)
-
 > This visualization maps how Vision One alerts are organized by tactic to drive meaningful triage and response workflows.
-
-### Step 3: Enable No MITRE Tactic Correlation Rule
-
-Some Vision One alerts may lack MITRE mappings. Enable a fallback rule to handle these:
-
-- **Rule Name:** `Vision One – No MITRE Tactic`
-- **Logic:**
-    - `MTIRE Tactic` is null or not present
-    - Group by fields such as `Sensor ID`, `Host`, or `Process Name`
-
-> This ensures unmapped alerts are still grouped effectively for investigation and triage.
 
 ## 🧠 Why This Matters
 
