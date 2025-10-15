@@ -1,0 +1,6 @@
+{
+  "trend_micro_vision_one_v3_generic_alert_raw": {
+    "_raw_json":      { "type": "string", "is_array": false },
+    "alert_provider": { "type": "string", "is_array": false }
+  }
+}

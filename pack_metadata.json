@@ -3,7 +3,7 @@
     "id": "soc-trendmicro-visionone",
     "description": "This contains enhancement content for Trend Micro Vision One including correlation rules, modeling rules, and layout for XSIAM.",
     "support": "xsoar",
-    "currentVersion": "1.0.3",
+    "currentVersion": "1.0.4",
     "author": "Cortex XSOAR",
     "url": "https://www.paloaltonetworks.com/cortex",
     "email": "",
@@ -18,7 +18,5 @@
     ],
     "useCases": [],
     "keywords": [],
-    "marketplaces": [
-        "marketplacev2"
-    ]
+    "marketplaces": ["marketplacev2"]
 }

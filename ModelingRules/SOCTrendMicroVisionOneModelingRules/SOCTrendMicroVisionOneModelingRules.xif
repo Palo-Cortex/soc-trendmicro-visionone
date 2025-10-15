@@ -1,0 +1,48 @@
+[MODEL: dataset="trend_micro_vision_one_v3_generic_alert_raw"]
+filter alert_provider = "SAE"
+| ALTER
+  xdm.alert.name               = json_extract_scalar(_raw_json, "$.model"),
+  xdm.alert.severity           = json_extract_scalar(_raw_json, "$.severity"),
+  xdm.alert.description        = json_extract_scalar(_raw_json, "$.description"),
+  xdm.alert.original_alert_id  = json_extract_scalar(_raw_json, "$.id"),
+  xdm.alert.original_threat_id = json_extract_scalar(_raw_json, "$.incident_id"),
+  xdm.alert.source_url         = json_extract_scalar(_raw_json, "$.workbench_link"),
+  xdm.alert.status             = json_extract_scalar(_raw_json, "$.status"),
+  xdm.alert.subcategory        = json_extract_scalar(_raw_json, "$.model_type"),
+  xdm.alert.category           = json_extract_scalar(_raw_json, "$.category"),
+
+  xdm.source.host.hostname       = json_extract_scalar(_raw_json, "$.impact_scope.entities[0].entity_value.name"),
+  xdm.source.host.ipv4_addresses = split(
+                                     replace(
+                                       json_extract_scalar(_raw_json, "$.impact_scope.entities[0].entity_value.ips[0]"),
+                                       "\"",""
+                                     ),
+                                     ", "
+                                   ),
+  xdm.source.host.mac_addresses  = split(
+                                     coalesce(
+                                       json_extract_scalar(_raw_json, "$.impact_scope.entities[0].entity_value.mac"),
+                                       json_extract_scalar(_raw_json, "$.impact_scope.entities[0].entity_value.mac_address"),
+                                       json_extract_scalar(_raw_json, "$.impact_scope.entities[0].entity_value.macs[0]")
+                                     ),
+                                     ","
+                                   ),
+
+  xdm.source.agent.identifier = coalesce(
+    json_extract_scalar(_raw_json, "$.impact_scope.entities[0].entity_value.agent_id"),
+    json_extract_scalar(_raw_json, "$.impact_scope.entities[0].entity_value.uuid"),
+    json_extract_scalar(_raw_json, "$.impact_scope.entities[0].entity_value.id")
+  ),
+  xdm.source.host.device_id = coalesce(
+    json_extract_scalar(_raw_json, "$.impact_scope.entities[0].entity_value.guid"),
+    json_extract_scalar(_raw_json, "$.impact_scope.entities[0].entity_value.agent_id"),
+    json_extract_scalar(_raw_json, "$.impact_scope.entities[0].entity_value.id")
+  ),
+
+  xdm.source.host.ipv6_addresses = split(
+    json_extract_scalar(_raw_json, "$.impact_scope.entities[0].entity_value.ipv6s[0]"),
+    ", "
+  ),
+
+  xdm.source.agent.type     = json_extract_scalar(_raw_json, "$.agent.type"),
+  xdm.source.agent.version  = json_extract_scalar(_raw_json, "$.agent.version")
