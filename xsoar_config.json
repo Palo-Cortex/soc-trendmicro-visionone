@@ -2,7 +2,7 @@
     "custom_packs": [
         {
             "id": "trend-rules.zip",
-            "url": "https://github.com/Palo-Cortex/soc-trendmicro-visionone/archive/refs/tags/v1.0.5.zip",
+            "url": "https://github.com/Palo-Cortex/soc-trendmicro-visionone/archive/refs/tags/v1.0.6.zip",
             "system": "yes"
         }
     ],
