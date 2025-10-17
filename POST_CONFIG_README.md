@@ -37,7 +37,7 @@ Go To: **Settings → Configurations → Object Setup → Layout Rules**
 
 #### 🖼️ Layout Rule Visualization
 
-![Trend Micro Vision One Layout Rules](https://github.com/Palo-Cortex/images/TrendVisionOneLayout.png)
+![Vision One Layout Rules](images/TrendVisionOneLayout.png)
 
 > This rule ensures that analysts immediately see the most relevant Vision One alert data in context.
 
@@ -51,20 +51,7 @@ Go To: **Detection & Correlation → Correlation Rules**
 
 Enable the following rules:
 
-| Correlation Rule Name                                   | MITRE Tactic                   |
-|----------------------------------------------------------|--------------------------------|
-| `Trend Micro Vision One – Initial Access Correlation`    | `TA0001 - Initial Access`      |
-| `Trend Micro Vision One – Execution Correlation`         | `TA0002 - Execution`           |
-| `Trend Micro Vision One – Persistence Correlation`       | `TA0003 - Persistence`         |
-| `Trend Micro Vision One – Privilege Escalation Correlation` | `TA0004 - Privilege Escalation` |
-| `Trend Micro Vision One – Defense Evasion Correlation`   | `TA0005 - Defense Evasion`     |
-| `Trend Micro Vision One – Credential Access Correlation` | `TA0006 - Credential Access`   |
-| `Trend Micro Vision One – Discovery Correlation`         | `TA0007 - Discovery`           |
-| `Trend Micro Vision One – Lateral Movement Correlation`  | `TA0008 - Lateral Movement`    |
-| `Trend Micro Vision One – Collection Correlation`        | `TA0009 - Collection`          |
-| `Trend Micro Vision One – Command and Control Correlation` | `TA0011 - Command and Control` |
-
-> These correlation rules leverage normalized fields like `tactic`, `technique`, `host_name`, and `entity_value` to group related alerts into a single actionable incident.
+![Vision One Layout Rules](images/TrendVisionCorrelations.png)
 
 #### 🖼️ Correlation Rules Visualization
 
