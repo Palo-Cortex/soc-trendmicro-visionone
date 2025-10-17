@@ -30,7 +30,7 @@ Go To: **Settings → Configurations → Object Setup → Layout Rules**
 
 #### 🖼️ Layout Rule Visualization
 
-![Vision One Layout Rules](https://github.com/Palo-Cortex/soc-trendmicro-visionone/blob/main/images/TrendVisionOneLayout.png)
+![Vision One Layout Rules](images/TrendVisionOneLayout.png)
 
 > This layout rule ensures the most relevant fields are presented to analysts working Vision One-related alerts.
 
@@ -42,7 +42,7 @@ Go To: **Detection & Correlation → Correlation Rules**
 
 Enable the following rules:
 
-![Vision One Layout Rules](https://github.com/Palo-Cortex/soc-trendmicro-visionone/blob/main/images/TrendVisionCorrelations.png)
+![Vision One Layout Rules](images/TrendVisionCorrelations.png)
 
 > These rules use fields like `MITRE Tactic`, `cmdline`, and `host` to group relevant alerts into single, actionable incidents.
 
