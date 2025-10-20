@@ -2,7 +2,7 @@
     "custom_packs": [
         {
             "id": "trend-rules.zip",
-            "url": "https://github.com/Palo-Cortex/soc-trendmicro-visionone/archive/refs/tags/v1.0.6.zip",
+            "url": "https://github.com/Palo-Cortex/soc-trendmicro-visionone/archive/refs/tags/v1.0.7.zip",
             "system": "yes"
         }
     ],
@@ -11,13 +11,9 @@
             "name": "SOC Trend Micro Vision One Enhancement - Manual Steps",
             "url": "https://github.com/Palo-Cortex/soc-trendmicro-visionone/blob/main/POST_CONFIG_README.md"
         }
+    ],"marketplace_packs": [
+        { "id": "TrendMicroVisionOneV3", "version": "*" }
     ],
-    "system": {
-        "tags": [
-            "Trend Micro Vision One",
-            "EndPoint",
-            "SOC",
-            "SOC_Framework"
-        ]
-    }
+    "lists": [],
+    "jobs": []
 }

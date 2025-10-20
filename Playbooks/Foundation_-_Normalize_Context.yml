@@ -568,7 +568,7 @@ tasks:
       iscommand: false
       name: Normalize Entities in Context
       playbooktaskmissingcomponent:
-      script: SOC_NormalizeContext-v2
+      script: SOC_Normalize_TrendMicro_VisionOne
       type: regular
       version: -1
     taskid: cafdd42c-3714-4931-9ea1-3d53a5a4ee91
