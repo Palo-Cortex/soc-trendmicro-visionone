@@ -55,7 +55,15 @@ filter alert_provider = "SAE"
   originalThreatName = arraystring(arraymap(Rules, json_extract_scalar(arrayindex(json_extract_array("@element","$.matched_filters"), 0), "$.name")), ", "),
   mitreTechniquesRaw = arraymap(Rules, replace(arraystring(json_extract_array(arrayindex(json_extract_array("@element","$.matched_filters"), 0), "$.mitre_technique_ids"), ", "), "\"",""))
 | alter
-  /* Alert core (strings) */
+  /* Alert core (XDM-compliant) */
+  xdm.alert.name        = coalesce(matchedRulesNames, to_string(model)),
+  xdm.alert.severity    = lowercase(to_string(severity)),  /* standardized value: low/medium/high/critical */
+  xdm.alert.description = concat(
+                            "Triggered by: ", coalesce(matchedRulesNames, to_string(model)),
+                            " | Provider: ", to_string(alert_provider),
+                            " | Score: ", to_string(score),
+                            " | Description: ", to_string(description)
+                          ),
   xdm.alert.original_threat_name = originalThreatName,
   xdm.alert.severity             = concat("Workbench alert severity: ", to_string(severity),
                                           ", Detection model and impact scope overall severity score: ",
@@ -67,7 +75,6 @@ filter alert_provider = "SAE"
                                    ),
   xdm.alert.description          = to_string(description),
   xdm.alert.original_alert_id    = matchedRulesIds,
-  xdm.alert.name                 = matchedRulesNames,
   xdm.alert.subcategory          = provenances,
 
   /* Entities → source.* */
@@ -180,12 +187,18 @@ filter alert_provider = "SAE"
     "\"",""
   )
 | alter
-  xdm.alert.severity                 = coalesce(to_string(json_extract_scalar(_raw_json,"$.cat")),
-                                                to_string(json_extract_scalar(_raw_json,"$.severity"))),
+  xdm.alert.severity                 = lowercase(coalesce(to_string(json_extract_scalar(_raw_json,"$.cat")),
+                                                      to_string(json_extract_scalar(_raw_json,"$.severity")))),
   xdm.alert.original_threat_name     = coalesce(to_string(json_extract_scalar(_raw_json,"$.behaviorCat")),
                                                 to_string(json_extract_scalar(_raw_json,"$.malName"))),
   xdm.alert.subcategory              = to_string(json_extract_scalar(_raw_json,"$.malType")),
   xdm.alert.name                     = to_string(json_extract_scalar(_raw_json,"$.threatName")),
+  xdm.alert.description              = concat(
+                                         "Provider: SAE | Score: ",
+                                         to_string(json_extract_scalar(_raw_json,"$.score")),
+                                         " | Description: ",
+                                         to_string(json_extract_scalar(_raw_json,"$.eventName"))
+                                       ),
   xdm.alert.original_alert_id        = to_string(json_extract_scalar(_raw_json,"$.uuid")),
 
   xdm.source.process.executable.signer = to_string(json_extract_scalar(_raw_json,"$.processSigner")),
@@ -292,8 +305,15 @@ filter alert_provider = "SAE"
 
 | alter
   xdm.alert.name            = arraystring(arraymap(json_extract_array(_raw_json,"$.filters"), json_extract_scalar("@element","$.name")), ", "),
-  xdm.alert.description     = arraystring(arraymap(json_extract_array(_raw_json,"$.filters"), json_extract_scalar("@element","$.description")), ", "),
-  xdm.alert.severity        = arraystring(arraymap(json_extract_array(_raw_json,"$.filters"), json_extract_scalar("@element","$.riskLevel")), ", "),
+  xdm.alert.description     = concat(
+                                 "Triggered by: ",
+                                 arraystring(arraymap(json_extract_array(_raw_json,"$.filters"), json_extract_scalar("@element","$.name")), ", "),
+                                 " | Provider: SAE | Score: ",
+                                 to_string(json_extract_scalar(_raw_json,"$.score")),
+                                 " | Details: ",
+                                 arraystring(arraymap(json_extract_array(_raw_json,"$.filters"), json_extract_scalar("@element","$.description")), ", ")
+                               ),
+  xdm.alert.severity        = lowercase(arraystring(arraymap(json_extract_array(_raw_json,"$.filters"), json_extract_scalar("@element","$.riskLevel")), ", ")),
   xdm.alert.subcategory     = to_string(json_extract_scalar(_raw_json,"$.detail.malType")),
 
   xdm.source.port                 = to_integer(json_extract_scalar(_raw_json,"$.detail.spt")),
