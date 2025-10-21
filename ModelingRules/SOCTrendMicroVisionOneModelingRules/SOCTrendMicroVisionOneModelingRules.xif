@@ -11,8 +11,8 @@ filter alert_provider = "SAE"
   Rules      = json_extract_array(matched_rules,  "$")
 | alter
   /* handy strings built from arrays */
-  matchedRulesIds   = arraystring(arraymap(Rules,     json_extract_scalar("@element", "$.id")), ", "),
-  matchedRulesNames = arraystring(arraymap(Rules,     json_extract_scalar("@element", "$.name")), ", "),
+  matchedRulesIds   = arraystring(arraymap(Rules, json_extract_scalar("@element", "$.id")), ", "),
+  matchedRulesNames = arraystring(arraymap(Rules, json_extract_scalar("@element", "$.name")), ", "),
 
   identityType = arraystring(
                   arraydistinct(
@@ -65,15 +65,6 @@ filter alert_provider = "SAE"
                             " | Description: ", to_string(description)
                           ),
   xdm.alert.original_threat_name = originalThreatName,
-  xdm.alert.severity             = concat("Workbench alert severity: ", to_string(severity),
-                                          ", Detection model and impact scope overall severity score: ",
-                                          to_string(score)),
-  xdm.alert.status               = coalesce(
-                                     if(to_string(status) = "Open",        "pending",   null),
-                                     if(to_string(status) = "In Progress", "in_review", null),
-                                     "done"
-                                   ),
-  xdm.alert.description          = to_string(description),
   xdm.alert.original_alert_id    = matchedRulesIds,
   xdm.alert.subcategory          = provenances,
 
@@ -86,31 +77,21 @@ filter alert_provider = "SAE"
   xdm.source.user.upn            = coalesce(entityValueGuidsUpn, entityValueNamesUpn),
 
   /* Process / registry / path */
-  xdm.source.process.command_line      = indicatorsValuesCommandLine,
-  xdm.source.process.executable.path   = indicatorsValuesExecPath,
-  xdm.source.process.name              = indicatorsValuesProcessName,
-  xdm.source.process.parent_id         = indicatorsValuesProcessId,
+  xdm.source.process.command_line    = indicatorsValuesCommandLine,
+  xdm.source.process.executable.path = indicatorsValuesExecPath,
+  xdm.source.process.name            = indicatorsValuesProcessName,
+  xdm.source.process.parent_id       = indicatorsValuesProcessId,
 
-  /* App / observer */
+  /* App / observer (safe fallback for unique id/type) */
   xdm.source.application.name    = to_string(alert_provider),
-/* NEW (safe with fallback) */
-xdm.observer.unique_identifier = to_string(
-  coalesce(
-    /* if your tenant later flattens it, this will win */
-    json_extract_scalar(matched_rules, "$[0].id"),
-    /* fallback to raw json key if present */
-    json_extract_scalar(_raw_json, "$.modelId"),
-    /* last-resort, keep something stable */
-    id
-  )
-),
-
-xdm.observer.type = to_string(
-  coalesce(
-    model_type,
-    json_extract_scalar(_raw_json, "$.model_type")
-  )
-),
+  xdm.observer.unique_identifier = to_string(
+                                     coalesce(
+                                       json_extract_scalar(matched_rules, "$[0].id"),
+                                       json_extract_scalar(_raw_json, "$.modelId"),
+                                       id
+                                     )
+                                   ),
+  xdm.observer.type              = to_string(coalesce(model_type, json_extract_scalar(_raw_json, "$.model_type"))),
 
   /* IPs (extract v4/v6 from mixed string) */
   xdm.source.ipv4 = arrayindex(regextract(entityValueIps, "\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}"),0),
@@ -125,7 +106,7 @@ xdm.observer.type = to_string(
   xdm.event.outcome_reason      = coalesce(to_string(investigation_status),
                                            concat(to_string(status), ", ", to_string(investigation_result))),
   xdm.event.type                = to_string(model),
-  xdm.event.description = coalesce(originalThreatName, matchedRulesNames, to_string(description)),
+  xdm.event.description         = coalesce(originalThreatName, matchedRulesNames, to_string(description)),
   xdm.event.original_event_type = "workbench",
 
   /* MITRE technique names (sample map) */

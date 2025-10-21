@@ -47,15 +47,15 @@ dataset: alerts
 description: null
 drilldown_query_timeframe: ALERT
 execution_mode: REAL_TIME
-global_rule_id: SOC Trend Micro Vision One V3 Alerts - Impact (TA0040)
+global_rule_id: SOC Trend Micro Vision One V3 Alerts - Command and Control (TA0011)
 investigation_query_link: ''
 is_enabled: true
 lookup_mapping: []
 mapping_strategy: CUSTOM
 mitre_defs:
-  TA0040 - Impact: []
-name: SOC Trend Micro Vision One V3 Alerts - Impact (TA0040)
-rule_id: 154
+  TA0011 - Command and Control: []
+name: SOC Trend Micro Vision One V3 Alerts - Command and Control (TA0011)
+rule_id: 153
 search_window: null
 severity: User Defined
 simple_schedule: null
@@ -83,11 +83,11 @@ xql_query: "dataset = trend_micro_vision_one_v3_generic_alert_raw \n| filter ale
   \ \", \"), \"\\\"\",\"\"), \"\u2014\"),\n  mitre_primary       = arrayindex(mitre_ids_arr,\
   \ 0),\n  mitre_primary_short = arrayindex(mitre_ids_short_arr, 0),\n  mitre_count\
   \         = array_length(mitre_ids_arr)\n/* === TACTIC FILTER === */\n| filter\n\
-  \  mitre_ids_short_str contains \"T1486\"\n  or mitre_ids_short_str contains \"\
-  T1490\"\n  or mitre_ids_short_str contains \"T1485\"\n  or mitre_ids_short_str contains\
-  \ \"T1499\"\n  or mitre_ids_short_str contains \"T1565\"\n| alter mitre_tactic =\
-  \ \"TA0040 - Impact\"\n/* -------- Core V1 metadata -------- */\n| alter\n  id \
-  \                   = j -> id,\n  schema_version        = j -> schema_version,\n\
+  \  mitre_ids_short_str contains \"T1071\"\n  or mitre_ids_short_str contains \"\
+  T1095\"\n  or mitre_ids_short_str contains \"T1105\"\n  or mitre_ids_short_str contains\
+  \ \"T1001\"\n  or mitre_ids_short_str contains \"T1090\"\n| alter mitre_tactic =\
+  \ \"TA0011 - Command and Control\"\n/* -------- Core V1 metadata -------- */\n|\
+  \ alter\n  id                    = j -> id,\n  schema_version        = j -> schema_version,\n\
   \  status                = j -> status,\n  investigation_status  = j -> investigation_status,\n\
   \  investigation_result  = j -> investigation_result,\n  workbench_link        =\
   \ j -> workbench_link,\n  alert_provider        = j -> alert_provider,\n  alert_name\
