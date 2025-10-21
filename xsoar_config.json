@@ -15,11 +15,6 @@
   "marketplace_packs": [
     {
       "id": "TrendMicroVisionOne",
-      "name": "Trend Micro Vision One",
-      "version": "latest"
-    },
-    {
-      "id": "",
       "version": "latest"
     }
   ],
