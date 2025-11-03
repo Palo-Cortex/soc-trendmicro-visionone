@@ -368,23 +368,22 @@
     ]
   },
   "edit": null,
-  "fromServerVersion": "",
+  "fromServerVersion": "6.0.0",
   "group": "incident",
   "id": "SOC Trend Micro Vision One IR",
   "indicatorsDetails": null,
   "indicatorsQuickView": null,
   "isOverridable": false,
-  "itemVersion": "",
+  "itemVersion": "1.0.7",
   "locked": false,
   "mobile": null,
   "name": "SOC Trend Micro Vision One IR",
   "packID": "",
-  "packName": "",
+  "packName": "SOC Trend Micro Enhancement for Cortex XSIAM",
   "quickView": null,
   "quickViewV2": null,
   "system": false,
-  "toServerVersion": "",
+  "toServerVersion": "99.99.99",
   "version": -1,
-  "fromVersion": "6.0.0",
-  "adopted": true
+  "fromVersion": "6.0.0"
 }
