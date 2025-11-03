@@ -1,4 +1,5 @@
 action: ALERTS
+adopted: true
 alert_category: OTHER
 alert_description: $alert_description
 alert_domain: DOMAIN_SECURITY
@@ -55,7 +56,7 @@ mapping_strategy: CUSTOM
 mitre_defs:
   TA0003 - Persistence: []
 name: SOC Trend Micro Vision One V3 Alerts - Persistence (TA0003)
-rule_id: 145
+rule_id: 0
 search_window: null
 severity: User Defined
 simple_schedule: null
