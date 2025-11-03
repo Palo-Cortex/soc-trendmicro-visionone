@@ -24,16 +24,13 @@ This enhancement package enables:
 
 To improve analyst efficiency and ensure consistent presentation of Vision One data:
 
-Go To: **Settings → Configurations → Object Setup → Layout Rules**
+Go To: **Settings → Configurations → Object Setup → Issues → Layout Rules**
 
 - **Rule Name:** `Trend Micro Vision One Alert Layout`
-- **Entity Type:** Alert
 - **Filter Criteria:**
-  - Alert Source: Equals `Trend Micro Vision One`
-- **Action:**
-  - Assign a custom alert layout optimized for Vision One alert data
-
-> This layout should surface key fields such as `Alert ID`, `Severity`, `Category`, `Host`, `User`, and `Detection Time`.
+  - Alert Source: Equals `Tags: DS:Trend Micro Vision One V3`
+- **Layout To Display:**
+  - Layout: Equals `SOC Trend Micro Vision One IR`
 
 #### 🖼️ Layout Rule Visualization
 
@@ -49,28 +46,9 @@ Enable correlation rules that group Vision One alerts into incidents based on th
 
 Go To: **Detection & Correlation → Correlation Rules**
 
-Enable the following rules:
+Enable the following rules (Disable any default rules from Integration Install):
 
 ![Vision One Layout Rules](images/TrendVisionCorrelations.png)
-
-#### 🖼️ Correlation Rules Visualization
-
-![Trend Micro Vision One Correlation Rules](https://github.com/Palo-Cortex/images/TrendVisionCorrelations.png)
-
-> Vision One alerts are organized by MITRE tactic to streamline triage and incident response.
-
----
-
-### Step 3: Enable No MITRE Tactic Correlation Rule
-
-Some Vision One alerts may not include a MITRE mapping. Enable the fallback rule to ensure these are still grouped efficiently.
-
-- **Rule Name:** `Trend Micro Vision One – No MITRE Tactic`
-- **Logic:**
-  - `tactic` is null or missing
-  - Group by fields such as `Alert ID`, `Host`, or `User`
-
-> This ensures all alerts, even those without a defined tactic, are grouped for triage and analysis.
 
 ---
 
@@ -83,21 +61,6 @@ These configurations align directly with the **XSIAM FieldOps Model** and **SOC 
 | Transformation         | Consistent, enriched layouts for all Vision One alerts            |
 | Risk & Resiliency      | MITRE mapping improves visibility and detection coverage          |
 | Automation & Efficacy  | Correlation reduces alert fatigue and improves investigation speed |
-
----
-
-## 🧪 Validation Tips
-
-- Simulate Vision One alerts across multiple tactics to validate correlation rules
-- Confirm the custom layout applies only to Vision One alerts
-- Check incident grouping logic under **Incidents → Recent Activity**
-- Review dashboards such as **SOC Value Metrics** and **Vision One Overview** for populated metrics
-
-## 🧩 Dependencies
-
-- Custom Alert Layout (JSON layout file included in pack)
-- SOC Optimization Framework (for scoring, enrichment, and triage workflows)
-- SOC Common Playbooks (for enrichment and normalization consistency)
 
 ---
 
